@@ -1,0 +1,29 @@
+# CORS configuration
+allowed:
+  origins: ${ALLOWED_ORIGINS:http://localhost:4200}
+  headers: ${ALLOWED_HEADERS:app-key,x-real-ip,content-type,authorization}
+# CSRF ACTIVATION
+activate:
+  csrf: ${ACTIVATE_CSRF:false}
+# enable problem details support for spring mvc (see RFC 9457)
+spring:
+  config:
+    import: classpath:/base-config-application.yaml
+  mvc:
+    problemdetails:
+      enabled: true
+  # disable spring security password generation
+  security:
+    user:
+      password: ""
+
+igs-gateway:
+  client:
+    # full URL to igs-service to be used for internal service call and frontend binary file upload (without trailing slash)
+    igs: ${IGS_SERVICE_URL:http://igs-service.demis.svc.cluster.local/surveillance/notification-sequence}
+    igsPublic: ${IGS_SERVICE_URL_PUBLIC:http://localhost:8080/surveillance/notification-sequence}
+    igsReadBinary: ${IGS_SERVICE_URL_READ_BINARY:/fhir/DocumentReference/{documentId}}
+    futs: ${FUTS_IGS_URL:http://futs.demis.svc.cluster.local/fhir-ui-data-model-translation}
+  cache:
+    futs:
+      cron: ${FUTS_CACH_CRON:"0 0/30 * * * *"}

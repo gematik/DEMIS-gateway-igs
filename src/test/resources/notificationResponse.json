@@ -1,0 +1,46 @@
+{
+  "resourceType": "Parameters",
+  "parameter": [
+    {
+      "name": "transactionID",
+      "valueIdentifier": {
+        "value": "IGS-10285-cvdp-1cf9cf1c-a8af-4a92-b882-47e1c3862795"
+      }
+    },
+    {
+      "name": "submitterGeneratedNotificationID",
+      "valueIdentifier": {
+        "value": "f8585efb-1872-4a4f-b88d-8c889e93487b"
+      }
+    },
+    {
+      "name": "labSequenceID",
+      "valueIdentifier": {
+        "value": "A384"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "OperationOutcome",
+        "meta": {
+          "profile": [
+            "https://demis.rki.de/fhir/StructureDefinition/ProcessNotificationResponse"
+          ]
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"></div>"
+        },
+        "issue": [
+          {
+            "severity": "information",
+            "code": "informational",
+            "details": {
+              "text": "All OK"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
