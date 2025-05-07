@@ -19,24 +19,28 @@ package de.gematik.demis.igs.gateway.csv.validation.constraints;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
+
+import static de.gematik.demis.igs.gateway.csv.DateFormat.ISO_8601_DATE_FORMAT;
+import static de.gematik.demis.igs.gateway.csv.DateFormat.LOCAL_DATE_FORMAT;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
 import org.apache.commons.lang3.StringUtils;
 
 /** Validator for the {@link IgsDate} annotation to ensure the date format is yyyy-MM-dd. */
 public class IgsDateFieldValidator implements ConstraintValidator<IgsDate, String> {
-  private static final DateTimeFormatter DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
 
   /**
-   * Validates that the given date string conforms to the yyyy-MM-dd format, as well as being a
-   * valid date.
+   * Validates that the given date string conforms either to the ISO 8601 date format or to the
+   * local date format, as well as being a valid date.
    *
    * @param value the date string to validate
    * @param context the context in which the constraint is evaluated
@@ -47,10 +51,20 @@ public class IgsDateFieldValidator implements ConstraintValidator<IgsDate, Strin
     if (StringUtils.isEmpty(value)) {
       return true;
     }
+    if (value.contains("-")) {
+      return checkDateFormat(value, ISO_8601_DATE_FORMAT.getFormatter());
+    } else if (value.contains(".")) {
+      return checkDateFormat(value, LOCAL_DATE_FORMAT.getFormatter());
+    } else {
+      return false;
+    }
+  }
+
+  private boolean checkDateFormat(String value, DateTimeFormatter dateTimeFormatter) {
     try {
-      LocalDate.parse(value, DATE_FORMATTER);
+      LocalDate.parse(value, dateTimeFormatter);
       return true;
-    } catch (RuntimeException e) {
+    } catch (RuntimeException exception) {
       return false;
     }
   }

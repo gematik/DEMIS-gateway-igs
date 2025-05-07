@@ -19,31 +19,49 @@ package de.gematik.demis.igs.gateway.csv.validation.rules;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_SEQUENCING_LAB;
+import static java.util.Objects.isNull;
+
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorMessage;
 import java.util.List;
 import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /** Checks whether the sequencing lab DEMIS lab ID is a five-digit number. */
 @Component
+@RequiredArgsConstructor
 public class SequencingLabRule extends CsvValidationRule implements ErrorDecorator {
+
+  private final MessageSourceWrapper messageSourceWrapper;
 
   private final Pattern sequencingLabDemisLabIdPattern = Pattern.compile("\\d{5}");
 
   @Override
   public List<ValidationError> applyOnValue(IgsOverviewCsv csvRow) {
+    // If splitting char is invalid the whole csvRow values are empty. This will be handled by the
+    // required fields constraints and header constraints. To prevent NPE empty list is returned.
+    if (isNull(csvRow.getSequencingLabDemisLabId())) {
+      return List.of();
+    }
     if (!sequencingLabDemisLabIdPattern.matcher(csvRow.getSequencingLabDemisLabId()).matches()) {
       return List.of(
           createError(
               csvRow,
-              ErrorMessage.SEQUENCING_LAB.msg().formatted(csvRow.getSequencingLabDemisLabId()),
-              ErrorCode.SEQUENCING_LAB));
+              ErrorCode.SEQUENCING_LAB,
+              messageSourceWrapper,
+              ERROR_SEQUENCING_LAB,
+              csvRow.getSequencingLabDemisLabId()));
     }
     return List.of();
   }

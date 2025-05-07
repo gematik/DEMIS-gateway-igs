@@ -37,9 +37,14 @@ package de.gematik.demis.igs.gateway;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -47,6 +52,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 /** Main class for IGS gateway */
 @SpringBootApplication
 @EnableFeignClients
+@EnableDefaultApiSpecConfig
 public class IgsGatewayApplication {
 
   public static void main(String[] args) {

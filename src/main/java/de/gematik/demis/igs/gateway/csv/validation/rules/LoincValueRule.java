@@ -19,12 +19,18 @@ package de.gematik.demis.igs.gateway.csv.validation.rules;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_LOINC_CODE;
 import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.SEQUENCING_REASON;
 import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.UPLOAD_STATUS;
 
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError;
@@ -42,6 +48,7 @@ public class LoincValueRule extends CsvValidationRule implements ErrorDecorator 
   private static final String SEQUENCING_REASON_COLUMN_NAME = "SEQUENCING_REASON";
   private static final String UPLOAD_STATUS_COLUMN_NAME = "UPLOAD_STATUS";
 
+  private final MessageSourceWrapper messageSourceWrapper;
   private final ValueSetMappingService valueSetMappingService;
 
   @Override
@@ -73,9 +80,12 @@ public class LoincValueRule extends CsvValidationRule implements ErrorDecorator 
       IgsOverviewCsv csvRow, String csvColumnName, String foundValue) {
     return createError(
         csvRow,
-        ValidationError.ErrorMessage.LOINC_CODE.msg().formatted(foundValue, csvColumnName),
         foundValue,
         csvColumnName,
-        ValidationError.ErrorCode.LOINC_CODE);
+        ValidationError.ErrorCode.LOINC_CODE,
+        messageSourceWrapper,
+        ERROR_LOINC_CODE,
+        foundValue,
+        csvColumnName);
   }
 }

@@ -19,6 +19,10 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
@@ -55,34 +59,7 @@ public class ValidationError implements Serializable {
     LOINC_CODE,
     INCONSISTENT_ROW_LENGTH,
     EMPTY_FILE,
+    INVALID_FILE_FORMAT,
     UNKNOWN
-  }
-
-  public enum ErrorMessage {
-    PREFIX("Zeile %d: "),
-    REQUIRED("Das Feld %s ist erforderlich und darf nicht null sein."),
-    DATE_FORMAT("Das Feld %s muss das Format yyyy-MM-dd haben. Gefunden: %s"),
-    PRIME_DIAGNOSTIC_LAB(
-        "Wenn das Primärlabor angegeben wurde, dann müssen die folgenden Felder alle befüllt werden: PRIME_DIAGNOSTIC_LAB.NAME, PRIME_DIAGNOSTIC_LAB.EMAIL, PRIME_DIAGNOSTIC_LAB.ADDRESS, PRIME_DIAGNOSTIC_LAB.CITY, PRIME_DIAGNOSTIC_LAB.POSTAL_CODE und PRIME_DIAGNOSTIC_LAB.COUNTRY"),
-    DUPLICATE_FILE_NAME(
-        "Die Namen der Sequenzdateien in der CSV-Datei müssen eindeutig sein. '%s' kommt doppelt vor!"),
-    SEQUENCING_LAB(
-        "Die SEQUENCING_LAB.DEMIS_LAB_ID muss eine fünfstellige Zahl sein. Gefunden wurde jedoch: %s"),
-    UNKNOWN("Unbekannter Fehler aufgetreten"),
-    EMPTY_FILE("Es wurde eine leere CSV-Datei hochgeladen"),
-    MISSING_HEADER("Die Kopfzeile %s fehlt."),
-    ILLEGAL_HEADER("Die Kopfzeile %s ist nicht erlaubt."),
-    LOINC_CODE(
-        "Der gefundene Wert '%s' konnte im Feld %s keinem gültigen LOINC-Code zugeordnet werden.");
-
-    private final String message;
-
-    ErrorMessage(String message) {
-      this.message = message;
-    }
-
-    public String msg() {
-      return message;
-    }
   }
 }

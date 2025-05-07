@@ -19,13 +19,21 @@ package de.gematik.demis.igs.gateway.csv.validation.rules;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_DATE_FORMAT;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_REQUIRED;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_UNKNOWN;
+
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorMessage;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import java.util.List;
@@ -43,6 +51,8 @@ public class FieldConstraintsRule extends CsvValidationRule implements ErrorDeco
   private static final String CSV_COLUMN_NAME_ANNOTATION = "column";
 
   private final Validator validator;
+
+  private final MessageSourceWrapper messageSourceWrapper;
 
   @Override
   public List<ValidationError> applyOnValue(IgsOverviewCsv csvRow) {
@@ -64,25 +74,34 @@ public class FieldConstraintsRule extends CsvValidationRule implements ErrorDeco
     final String csvColumnName = csvColumnName(violation);
     return createError(
         violation.getRootBean(),
-        ErrorMessage.REQUIRED.msg().formatted(csvColumnName),
         csvColumnName,
-        ErrorCode.REQUIRED_FIELD);
+        ErrorCode.REQUIRED_FIELD,
+        messageSourceWrapper,
+        ERROR_REQUIRED,
+        csvColumnName);
   }
 
   private ValidationError dateFieldError(ConstraintViolation<IgsOverviewCsv> violation) {
     final String csvColumnName = csvColumnName(violation);
     return createError(
         violation.getRootBean(),
-        ErrorMessage.DATE_FORMAT.msg().formatted(csvColumnName, violation.getInvalidValue()),
         String.valueOf(violation.getInvalidValue()),
         csvColumnName,
-        ErrorCode.DATE_FORMAT);
+        ErrorCode.DATE_FORMAT,
+        messageSourceWrapper,
+        ERROR_DATE_FORMAT,
+        csvColumnName,
+        String.valueOf(violation.getInvalidValue()));
   }
 
   private ValidationError unknownError(ConstraintViolation<IgsOverviewCsv> violation) {
     final String csvColumnName = csvColumnName(violation);
     return createError(
-        violation.getRootBean(), ErrorMessage.UNKNOWN.msg(), csvColumnName, ErrorCode.UNKNOWN);
+        violation.getRootBean(),
+        ErrorCode.UNKNOWN,
+        messageSourceWrapper,
+        ERROR_UNKNOWN,
+        csvColumnName);
   }
 
   private String csvColumnName(ConstraintViolation<IgsOverviewCsv> violation) {

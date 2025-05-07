@@ -19,6 +19,10 @@ package de.gematik.demis.igs.gateway;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
@@ -45,6 +49,11 @@ public class TestUtils {
   public static final String SEQUENCING_REASON_CLINICAL = "Clinical (qualifier value)";
   public static final String SEQUENCING_REASON_CLINICAL_CODE = "58147004";
   public static final String CODE_SYSTEM = "http://snomed.info/sct";
+
+  public static final String MOCKED_ERROR_MESSAGE = "Mocked message";
+  public static final String MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER = "Mocked message %s";
+  public static final String MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS =
+      "Mocked message with paceholder1: %s and 2: %s";
 
   public static List<CodeDisplay> LIST_UPLOAD_STATUS_CODE_DISPLAY =
       List.of(
