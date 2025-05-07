@@ -34,7 +34,9 @@ application:
   entrypoint: ["java"]
   parameters: ["-XX:ActiveProcessorCount=2", "-XX:MaxRAMPercentage=80.0", "-XX:+TieredCompilation", "-XX:+UseSerialGC", "-jar", "/app.jar"]
 
-customEnvVars: {}
+customEnvVars:
+  IGS_SERVICE_URL: http://igs-service.demis.svc.cluster.local/surveillance/notification-sequence
+  FUTS_IGS_URL: http://futs.demis.svc.cluster.local/fhir-ui-data-model-translation
 
 # Define Image Pull Secrets if using private registry
 imagePullSecrets: []
@@ -105,11 +107,10 @@ service:
 # Resources
 resources:
   limits:
-    cpu: "1000m"
-    memory: "1Gi"
+    memory: "500Mi"
   requests:
-    cpu: "200m"
-    memory: "1Gi"
+    cpu: "50m"
+    memory: "500Mi"
 
 autoscaling:
   enabled: false

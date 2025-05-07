@@ -19,16 +19,25 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_EMPTY_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import de.gematik.demis.igs.gateway.IgsOverviewCsvTestData;
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.InvalidInputDataException;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
@@ -52,30 +61,34 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CsvContentValidatorTest {
 
   private static final String SAMPLE_ERROR_MESSAGE = "Invalid Input Data";
-
   private static final FieldConstraintsRule fieldConstraintsRule = mock(FieldConstraintsRule.class);
   private static final PrimeDiagnosticLabRule primeDiagnosticLabRule =
       mock(PrimeDiagnosticLabRule.class);
   private static final SequencingLabRule sequencingLabRule = mock(SequencingLabRule.class);
   private static final UniqueFilenameRule uniqueFilenameRule = mock(UniqueFilenameRule.class);
+  private static final MessageSourceWrapper MESSAGE_SOURCE_WRAPPER =
+      mock(MessageSourceWrapper.class);
 
   @NullSource
   @EmptySource
   @ParameterizedTest
   void shouldValidateWhenIgsOverviewDataItemsIsEmpty(List<IgsOverviewCsv> input) {
+    MessageSourceWrapper messageSourceWrapper = mock(MessageSourceWrapper.class);
+    when(messageSourceWrapper.getMessage(any())).thenReturn(MOCKED_ERROR_MESSAGE);
     CsvContentValidator validator =
         new CsvContentValidator(
             List.of(
                 fieldConstraintsRule,
                 primeDiagnosticLabRule,
                 sequencingLabRule,
-                uniqueFilenameRule));
+                uniqueFilenameRule),
+            messageSourceWrapper);
     InvalidInputDataException ex =
         assertThrows(InvalidInputDataException.class, () -> validator.validate(input));
+    verify(messageSourceWrapper, times(1)).getMessage(ERROR_EMPTY_FILE);
     assertThat(ex.getErrors()).hasSize(1);
     assertThat(ex.getErrors().getFirst().getRowNumber()).isZero();
-    assertThat(ex.getErrors().getFirst().getMsg())
-        .isEqualTo(ValidationError.ErrorMessage.EMPTY_FILE.msg());
+    assertThat(ex.getErrors().getFirst().getMsg()).isEqualTo(MOCKED_ERROR_MESSAGE);
     assertThat(ex.getErrors().getFirst().getErrorCode()).isEqualTo(ErrorCode.EMPTY_FILE);
     assertThat(ex.getErrors().getFirst().getFoundValue()).isNull();
     assertThat(ex.getErrors().getFirst().getColumnName()).isNull();
@@ -100,10 +113,9 @@ class CsvContentValidatorTest {
                     .errorCode(ErrorCode.REQUIRED_FIELD)
                     .msg(SAMPLE_ERROR_MESSAGE)
                     .build()));
-    CsvContentValidator validator = new CsvContentValidator(List.of(rule));
+    CsvContentValidator validator = new CsvContentValidator(List.of(rule), MESSAGE_SOURCE_WRAPPER);
     List<IgsOverviewCsv> csvs = List.of(IgsOverviewCsvTestData.firstRow.build());
     List<ValidationError> validationErrors = validator.validate(csvs);
-
     assertThat(validationErrors).hasSize(1);
   }
 }

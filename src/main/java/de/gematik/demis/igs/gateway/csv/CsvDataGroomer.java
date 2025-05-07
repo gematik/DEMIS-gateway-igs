@@ -19,6 +19,10 @@ package de.gematik.demis.igs.gateway.csv;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
@@ -28,6 +32,8 @@ import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.Syste
 import de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.model.OverviewDataCsv;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +62,7 @@ public class CsvDataGroomer {
         .map(this::convertToLowerCase)
         .map(this::replaceCodes)
         .map(this::replaceEmptyDemisNotificationId)
+        .map(this::replaceLocalDates)
         .toList();
   }
 
@@ -93,5 +100,30 @@ public class CsvDataGroomer {
       preprocessedOverviewData.setDemisNotificationId(FAKE_DEMIS_NOTIFICATION_ID);
     }
     return preprocessedOverviewData;
+  }
+
+  private IgsOverviewCsv replaceLocalDates(OverviewDataCsv igsOverviewModel) {
+    IgsOverviewCsv preprocessedOverviewData = new IgsOverviewCsv();
+    BeanUtils.copyProperties(igsOverviewModel, preprocessedOverviewData);
+    preprocessedOverviewData.setDateOfReceiving(
+        ensureIso8601Date(igsOverviewModel.getDateOfReceiving()));
+    preprocessedOverviewData.setDateOfSampling(
+        ensureIso8601Date(igsOverviewModel.getDateOfSampling()));
+    preprocessedOverviewData.setDateOfSequencing(
+        ensureIso8601Date(igsOverviewModel.getDateOfSequencing()));
+    preprocessedOverviewData.setUploadDate(ensureIso8601Date(igsOverviewModel.getUploadDate()));
+    return preprocessedOverviewData;
+  }
+
+  private String ensureIso8601Date(String date) {
+    if (!date.contains(".")) {
+      return date;
+    }
+    try {
+      LocalDate localDate = LocalDate.parse(date, DateFormat.LOCAL_DATE_FORMAT.getFormatter());
+      return localDate.format(DateFormat.ISO_8601_DATE_FORMAT.getFormatter());
+    } catch (DateTimeParseException dateTimeParseException) {
+      return date;
+    }
   }
 }

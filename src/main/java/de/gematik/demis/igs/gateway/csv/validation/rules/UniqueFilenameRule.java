@@ -19,23 +19,33 @@ package de.gematik.demis.igs.gateway.csv.validation.rules;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_DUPLICATE_FILE_NAME;
+
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorMessage;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /** Checks whether the filenames in a CSV file are unique. */
 @Component
+@RequiredArgsConstructor
 public class UniqueFilenameRule extends CsvValidationRule implements ErrorDecorator {
+
+  private final MessageSourceWrapper messageSourceWrapper;
 
   @Override
   public List<ValidationError> applyOnValues(List<IgsOverviewCsv> igsOverviewDataItems) {
@@ -54,8 +64,10 @@ public class UniqueFilenameRule extends CsvValidationRule implements ErrorDecora
         errors.add(
             createError(
                 csvRow,
-                ErrorMessage.DUPLICATE_FILE_NAME.msg().formatted(fileName),
-                ErrorCode.UNIQUE_FILENAME));
+                ErrorCode.UNIQUE_FILENAME,
+                messageSourceWrapper,
+                ERROR_DUPLICATE_FILE_NAME,
+                fileName));
       }
     }
     return errors;

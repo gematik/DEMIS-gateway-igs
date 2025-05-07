@@ -19,6 +19,10 @@ package de.gematik.demis.igs.gateway.csv;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
@@ -27,7 +31,6 @@ import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.model.OverviewParsedRowResult;
 import de.gematik.demis.igs.gateway.csv.model.OverviewResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,12 +43,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class CsvUploadController {
 
   private CsvService csvService;
+  private CsvBytesToStringConverter csvBytesToStringConverter;
 
   @PostMapping(path = "/csv/upload")
   public OverviewResponse uploadCsv(@RequestParam(name = "csvFile") MultipartFile csvFile)
       throws IgsGatewayException {
     try {
-      String csvData = new String(csvFile.getBytes(), StandardCharsets.UTF_8);
+      String csvData = csvBytesToStringConverter.convert(csvFile.getBytes());
       List<IgsOverviewCsv> proceededCsvFile = csvService.processCsv(csvData);
       List<OverviewParsedRowResult> overviewData =
           proceededCsvFile.stream().map(o -> new OverviewParsedRowResult().setData(o)).toList();

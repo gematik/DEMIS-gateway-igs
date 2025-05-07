@@ -19,36 +19,76 @@ package de.gematik.demis.igs.gateway.csv.validation.rules;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_PREFIX;
+
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
+import de.gematik.demis.igs.gateway.configuration.MessagesProperties;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorMessage;
 
 public interface ErrorDecorator {
-  default ValidationError createError(IgsOverviewCsv csvRow, String message, ErrorCode errorCode) {
-    return createError(csvRow, message, null, null, errorCode);
-  }
 
   default ValidationError createError(
-      IgsOverviewCsv csvRow, String message, String columnName, ErrorCode errorCode) {
-    return createError(csvRow, message, null, columnName, errorCode);
+      IgsOverviewCsv csvRow,
+      ErrorCode errorCode,
+      MessageSourceWrapper messageSourceWrapper,
+      MessagesProperties messagesProperties,
+      String... formatArgs) {
+    return createError(
+        csvRow, null, null, errorCode, messageSourceWrapper, messagesProperties, formatArgs);
   }
 
   default ValidationError createError(
       IgsOverviewCsv csvRow,
-      String message,
+      String columnName,
+      ErrorCode errorCode,
+      MessageSourceWrapper messageSourceWrapper,
+      MessagesProperties messagesProperties,
+      String... formatArgs) {
+    return createError(
+        csvRow, null, columnName, errorCode, messageSourceWrapper, messagesProperties, formatArgs);
+  }
+
+  default ValidationError createError(
+      IgsOverviewCsv csvRow,
       String foundValue,
       String columnName,
-      ErrorCode errorCode) {
+      ErrorCode errorCode,
+      MessageSourceWrapper messageSourceWrapper,
+      MessagesProperties messagesProperties,
+      String... formatArgs) {
+    String fullMessage =
+        createMessage(csvRow, messageSourceWrapper, messagesProperties, formatArgs);
+
     return ValidationError.builder()
-        .msg((ErrorMessage.PREFIX.msg() + message).formatted(csvRow.getRowNumber()))
+        .msg(fullMessage)
         .rowNumber(csvRow.getRowNumber())
         .errorCode(errorCode)
         .foundValue(foundValue)
         .columnName(columnName)
         .build();
+  }
+
+  private static String createMessage(
+      IgsOverviewCsv csvRow,
+      MessageSourceWrapper messageSourceWrapper,
+      MessagesProperties messagesProperties,
+      String[] formatArgs) {
+    String errorMessage;
+    if (formatArgs != null && formatArgs.length > 0) {
+      errorMessage = messageSourceWrapper.getMessage(messagesProperties, formatArgs);
+    } else {
+      errorMessage = messageSourceWrapper.getMessage(messagesProperties);
+    }
+    return messageSourceWrapper.getMessage(ERROR_PREFIX, String.valueOf(csvRow.getRowNumber()))
+        + errorMessage;
   }
 }

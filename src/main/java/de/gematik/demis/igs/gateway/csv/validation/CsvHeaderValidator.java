@@ -19,31 +19,63 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
-import static java.lang.String.format;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_EMPTY_FILE;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_ILLEGAL_HEADER;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_MISSING_HEADER;
 
 import com.opencsv.bean.CsvBindByName;
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
+import de.gematik.demis.igs.gateway.configuration.MessagesProperties;
 import de.gematik.demis.igs.gateway.csv.InvalidInputDataException;
 import de.gematik.demis.igs.gateway.csv.model.OverviewDataCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorMessage;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CsvHeaderValidator {
 
   private static final String SPLIT_REGEX = "\n";
   private static final String SEPARATOR = ";";
   private static final int HEADER_ROW = 0;
   private static final List<String> headers = headers();
+
+  private final MessageSourceWrapper messageSourceWrapper;
+
+  /**
+   * Retrieves a list of header names from the fields of the `OverviewDataCsv` class that are
+   * annotated with `CsvBindByName`, which are used for validation.
+   *
+   * @return a list of header names
+   */
+  private static List<String> headers() {
+    final Field[] fields = OverviewDataCsv.class.getDeclaredFields();
+    return Arrays.stream(fields)
+        .map(
+            field -> {
+              if (field.isAnnotationPresent(CsvBindByName.class)) {
+                CsvBindByName annotation = field.getAnnotation(CsvBindByName.class);
+                return annotation.column();
+              }
+              return null;
+            })
+        .filter(Objects::nonNull)
+        .toList();
+  }
 
   public List<ValidationError> validate(String csvData) {
     handleBlankCsv(csvData);
@@ -56,7 +88,7 @@ public class CsvHeaderValidator {
           List.of(
               ValidationError.builder()
                   .rowNumber(HEADER_ROW)
-                  .msg(ErrorMessage.EMPTY_FILE.msg())
+                  .msg(messageSourceWrapper.getMessage(ERROR_EMPTY_FILE))
                   .errorCode(ErrorCode.EMPTY_FILE)
                   .build()));
     }
@@ -79,44 +111,24 @@ public class CsvHeaderValidator {
   private List<ValidationError> checkForUnknownHeaders(List<String> extractedHeaders) {
     return extractedHeaders.stream()
         .filter(header -> !headers.contains(header))
-        .map(header -> createValidationError(header, ErrorMessage.ILLEGAL_HEADER.msg()))
+        .map(header -> createValidationError(header, ERROR_ILLEGAL_HEADER))
         .toList();
   }
 
   private List<ValidationError> checkForMissingHeaders(List<String> extractedHeaders) {
     return headers.stream()
         .filter(header -> !extractedHeaders.contains(header))
-        .map(header -> createValidationError(header, ErrorMessage.MISSING_HEADER.msg()))
+        .map(header -> createValidationError(header, ERROR_MISSING_HEADER))
         .toList();
   }
 
-  private ValidationError createValidationError(String header, String messageTemplate) {
+  private ValidationError createValidationError(
+      String header, MessagesProperties messagesProperties) {
     return ValidationError.builder()
-        .msg(format(messageTemplate, header))
+        .msg(messageSourceWrapper.getMessage(messagesProperties, header))
         .rowNumber(HEADER_ROW)
         .errorCode(ErrorCode.HEADER)
         .columnName(header)
         .build();
-  }
-
-  /**
-   * Retrieves a list of header names from the fields of the `OverviewDataCsv` class that are
-   * annotated with `CsvBindByName`, which are used for validation.
-   *
-   * @return a list of header names
-   */
-  private static List<String> headers() {
-    final Field[] fields = OverviewDataCsv.class.getDeclaredFields();
-    return Arrays.stream(fields)
-        .map(
-            field -> {
-              if (field.isAnnotationPresent(CsvBindByName.class)) {
-                CsvBindByName annotation = field.getAnnotation(CsvBindByName.class);
-                return annotation.column();
-              }
-              return null;
-            })
-        .filter(Objects::nonNull)
-        .toList();
   }
 }

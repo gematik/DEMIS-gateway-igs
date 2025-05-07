@@ -19,25 +19,44 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE;
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_PREFIX;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_PRIME_DIAGNOSTIC_LAB;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.rules.CsvValidationRule;
 import de.gematik.demis.igs.gateway.csv.validation.rules.PrimeDiagnosticLabRule;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
 
-  private final CsvValidationRule rule = new PrimeDiagnosticLabRule();
-  private final String CONCAT_ERROR =
-      ValidationError.ErrorMessage.PREFIX.msg()
-          + ValidationError.ErrorMessage.PRIME_DIAGNOSTIC_LAB.msg();
+  private final String CONCAT_ERROR = MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER + MOCKED_ERROR_MESSAGE;
+  private MessageSourceWrapper messageSourceWrapper;
+  private PrimeDiagnosticLabRule rule;
+
+  @BeforeEach
+  void init() {
+    messageSourceWrapper = mock(MessageSourceWrapper.class);
+    rule = new PrimeDiagnosticLabRule(messageSourceWrapper);
+    when(messageSourceWrapper.getMessage(ERROR_PRIME_DIAGNOSTIC_LAB))
+        .thenReturn(MOCKED_ERROR_MESSAGE);
+  }
 
   @Test
   void shouldValidateWithoutPrimeDiagnosticLab() {
@@ -76,6 +95,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
 
+    mockMessageWithRowNumber(secondRow);
+
     expectOneErrorInList(secondRow);
   }
 
@@ -89,6 +110,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabCountry(null);
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
+
+    mockMessageWithRowNumber(secondRow);
 
     expectOneErrorInList(secondRow);
   }
@@ -104,6 +127,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
 
+    mockMessageWithRowNumber(secondRow);
+
     expectOneErrorInList(secondRow);
   }
 
@@ -117,6 +142,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabCountry(null);
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
+
+    mockMessageWithRowNumber(secondRow);
 
     expectOneErrorInList(secondRow);
   }
@@ -132,6 +159,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
 
+    mockMessageWithRowNumber(secondRow);
+
     expectOneErrorInList(secondRow);
   }
 
@@ -145,6 +174,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabPostalCode(null);
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
+
+    mockMessageWithRowNumber(secondRow);
 
     expectOneErrorInList(secondRow);
   }
@@ -160,6 +191,8 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabCountry(null);
     secondRow.setPrimeDiagnosticLabFederalState(null);
 
+    mockMessageWithRowNumber(secondRow);
+
     expectOneErrorInList(secondRow);
   }
 
@@ -174,17 +207,9 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabCountry(null);
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
 
-    expectOneErrorInList(secondRow);
-  }
+    mockMessageWithRowNumber(secondRow);
 
-  private void expectOneErrorInList(IgsOverviewCsv row) {
-    List<ValidationError> errors = new ArrayList<>(rule.applyOnValue(firstRowBuilder.build()));
-    errors.addAll(rule.applyOnValue(row));
-    errors.addAll(rule.applyOnValue(thirdRowBuilder.build()));
-    assertThat(errors).hasSize(1);
-    assertThat(errors.getFirst().getMsg()).isEqualTo(CONCAT_ERROR.formatted(row.getRowNumber()));
-    assertThat(errors.getFirst().getErrorCode()).isEqualTo(ErrorCode.PRIME_DIAGNOSTIC_LAB);
-    assertThat(errors.getFirst().getRowNumber()).isEqualTo(row.getRowNumber());
+    expectOneErrorInList(secondRow);
   }
 
   @Test
@@ -208,12 +233,34 @@ class PrimeDiagnosticLabRuleTest extends AbstractValidatorRuleTest {
     secondRow.setPrimeDiagnosticLabDemisLabId(null);
 
     List<IgsOverviewCsv> igsOverviewDataItems = List.of(firstRow, secondRow);
+
+    mockMessageWithRowNumber(firstRow);
+    mockMessageWithRowNumber(secondRow);
+
     List<ValidationError> errors = new ArrayList<>(rule.applyOnValue(firstRow));
     errors.addAll(rule.applyOnValue(secondRow));
+
     assertThat(errors).hasSize(2);
     assertThat(errors.getFirst().getMsg())
         .isEqualTo(CONCAT_ERROR.formatted(igsOverviewDataItems.getFirst().getRowNumber()));
     assertThat(errors.getLast().getMsg())
         .isEqualTo(CONCAT_ERROR.formatted(igsOverviewDataItems.getLast().getRowNumber()));
+  }
+
+  private void expectOneErrorInList(IgsOverviewCsv row) {
+    List<ValidationError> errors = new ArrayList<>(rule.applyOnValue(firstRowBuilder.build()));
+    errors.addAll(rule.applyOnValue(row));
+    errors.addAll(rule.applyOnValue(thirdRowBuilder.build()));
+    verify(messageSourceWrapper).getMessage(ERROR_PRIME_DIAGNOSTIC_LAB);
+    assertThat(errors).hasSize(1);
+    assertThat(errors.getFirst().getMsg()).isEqualTo(CONCAT_ERROR.formatted(row.getRowNumber()));
+    assertThat(errors.getFirst().getErrorCode()).isEqualTo(ErrorCode.PRIME_DIAGNOSTIC_LAB);
+    assertThat(errors.getFirst().getRowNumber()).isEqualTo(row.getRowNumber());
+  }
+
+  private void mockMessageWithRowNumber(IgsOverviewCsv row) {
+    String rowNumber = String.valueOf(row.getRowNumber());
+    when(messageSourceWrapper.getMessage(ERROR_PREFIX, rowNumber))
+        .thenReturn(MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted(rowNumber));
   }
 }

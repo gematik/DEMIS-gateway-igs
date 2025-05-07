@@ -19,11 +19,22 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER;
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_DATE_FORMAT;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_PREFIX;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.model.OverviewDataCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
@@ -42,16 +53,20 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
 
+  @MockitoBean private MessageSourceWrapper messageSourceWrapper;
+
   @Autowired FieldConstraintsRule rule;
+
   private final String DATE_WRONG_FORMAT = "2021.01.01";
-  private final String CONCAT_REQUIRE_ERROR =
-      ValidationError.ErrorMessage.PREFIX.msg() + ValidationError.ErrorMessage.REQUIRED.msg();
-  private final String CONCAT_DATE_ERROR =
-      ValidationError.ErrorMessage.PREFIX.msg() + ValidationError.ErrorMessage.DATE_FORMAT.msg();
+  private final String CONCAT_REQUIRED_ERROR =
+      MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER + MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER;
+  private final String CONCAT_DATE_FORMAT_ERROR =
+      MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER + MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS;
 
   @Nested
   class DateFieldConstraintTests {
@@ -60,6 +75,21 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
     void shouldFindNoErrors() {
       List<ValidationError> errors =
           getDateErrors(firstRowBuilder.build(), secondRowBuilder.build(), thirdRowBuilder.build());
+      assertThat(errors).isEmpty();
+    }
+
+    @Test
+    void shouldFindNoErrorsWithLocalDateFormat() {
+      IgsOverviewCsv firstRow = firstRowBuilder.build();
+      firstRow.setDateOfSampling("18.05.2022");
+      firstRow.setDateOfReceiving("03.03.2023");
+      firstRow.setDateOfSequencing("29.09.2022");
+      firstRow.setUploadDate("22.05.2024");
+
+      IgsOverviewCsv secondRow = secondRowBuilder.build();
+      secondRow.setDateOfReceiving("03.03.2023");
+
+      List<ValidationError> errors = getDateErrors(firstRow, secondRow, thirdRowBuilder.build());
       assertThat(errors).isEmpty();
     }
 
@@ -72,17 +102,23 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
       "uploadDate,UPLOAD_DATE"
     })
     void shouldFindErrorIfDateFormatedWrong(String datePropertyName, String columnName) {
-      IgsOverviewCsv row = firstRowBuilder.build();
 
+      IgsOverviewCsv row = firstRowBuilder.build();
       Field rulesField = OverviewDataCsv.class.getDeclaredField(datePropertyName);
       rulesField.setAccessible(true);
       rulesField.set(row, DATE_WRONG_FORMAT);
 
+      mockMessageWithRowNumber(row);
+
+      mockMessageForErrorDateFormat(messageSourceWrapper, columnName, DATE_WRONG_FORMAT);
+
       List<ValidationError> errors = getDateErrors(row);
+
       assertThat(errors).hasSize(1);
       assertThat(errors.getFirst().getMsg())
           .isEqualTo(
-              CONCAT_DATE_ERROR.formatted(row.getRowNumber(), columnName, DATE_WRONG_FORMAT));
+              CONCAT_DATE_FORMAT_ERROR.formatted(
+                  row.getRowNumber(), DATE_WRONG_FORMAT, columnName));
     }
 
     @SneakyThrows
@@ -100,23 +136,34 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
       rulesField.setAccessible(true);
       rulesField.set(row, date);
 
+      mockMessageWithRowNumber(row);
+
+      mockMessageForErrorDateFormat(messageSourceWrapper, columnName, date);
+
       List<ValidationError> errors = getDateErrors(row);
+
       assertThat(errors).hasSize(1);
       assertThat(errors.getFirst().getMsg())
-          .isEqualTo(CONCAT_DATE_ERROR.formatted(row.getRowNumber(), columnName, date));
+          .isEqualTo(CONCAT_DATE_FORMAT_ERROR.formatted(row.getRowNumber(), date, columnName));
     }
 
     @Test
     void shouldFindErrorIfDateFormatedWrongInOneLine() {
+
       IgsOverviewCsv row = firstRowBuilder.build();
       row.setDateOfSampling(DATE_WRONG_FORMAT);
+
+      mockMessageWithRowNumber(row);
+      mockMessageForErrorDateFormat(messageSourceWrapper, "DATE_OF_SAMPLING", DATE_WRONG_FORMAT);
+
       List<ValidationError> errors = getDateErrors(row);
       errors = errors.stream().filter(e -> e.getErrorCode() == ErrorCode.DATE_FORMAT).toList();
+
       assertThat(errors).hasSize(1);
       assertThat(errors.getFirst().getMsg())
           .isEqualTo(
-              CONCAT_DATE_ERROR.formatted(
-                  row.getRowNumber(), "DATE_OF_SAMPLING", DATE_WRONG_FORMAT));
+              CONCAT_DATE_FORMAT_ERROR.formatted(
+                  row.getRowNumber(), DATE_WRONG_FORMAT, "DATE_OF_SAMPLING"));
       assertThat(errors.getFirst().getRowNumber()).isEqualTo(row.getRowNumber());
       assertThat(errors.getFirst().getColumnName()).isEqualTo("DATE_OF_SAMPLING");
       assertThat(errors.getFirst().getFoundValue()).isEqualTo(DATE_WRONG_FORMAT);
@@ -125,36 +172,54 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
 
     @Test
     void shouldFindTwoErrorsIfDateFormatedWrongInOneLine() {
+
       IgsOverviewCsv row = firstRowBuilder.build();
       row.setDateOfSampling(DATE_WRONG_FORMAT);
       row.setDateOfReceiving(DATE_WRONG_FORMAT);
+
+      row.setDateOfSampling(DATE_WRONG_FORMAT);
+
+      mockMessageWithRowNumber(row);
+
+      mockMessageForErrorDateFormat(messageSourceWrapper, "DATE_OF_SAMPLING", DATE_WRONG_FORMAT);
+      mockMessageForErrorDateFormat(messageSourceWrapper, "DATE_OF_RECEIVING", DATE_WRONG_FORMAT);
+
       List<ValidationError> errors = getDateErrors(row);
 
       assertThat(errors).hasSize(2);
       assertThat(errors.stream().map(ValidationError::getMsg))
           .containsExactlyInAnyOrder(
-              CONCAT_DATE_ERROR.formatted(
-                  row.getRowNumber(), "DATE_OF_RECEIVING", DATE_WRONG_FORMAT),
-              CONCAT_DATE_ERROR.formatted(
-                  row.getRowNumber(), "DATE_OF_SAMPLING", DATE_WRONG_FORMAT));
+              CONCAT_DATE_FORMAT_ERROR.formatted(
+                  row.getRowNumber(), DATE_WRONG_FORMAT, "DATE_OF_SAMPLING"),
+              CONCAT_DATE_FORMAT_ERROR.formatted(
+                  row.getRowNumber(), DATE_WRONG_FORMAT, "DATE_OF_RECEIVING"));
     }
 
     @Test
     void shouldFindTwoErrorIfDateFormatedWrongInMultiLine() {
+
       IgsOverviewCsv row = firstRowBuilder.build();
       IgsOverviewCsv row2 = secondRowBuilder.build();
       row.setDateOfSampling(DATE_WRONG_FORMAT);
       row2.setDateOfSampling(DATE_WRONG_FORMAT);
+
+      mockMessageWithRowNumber(row);
+      mockMessageWithRowNumber(row2);
+
+      mockMessageForErrorDateFormat(messageSourceWrapper, "DATE_OF_SAMPLING", DATE_WRONG_FORMAT);
+      mockMessageForErrorDateFormat(messageSourceWrapper, "DATE_OF_RECEIVING", DATE_WRONG_FORMAT);
+
       List<ValidationError> errors = getDateErrors(row, row2);
+
       assertThat(errors).hasSize(2);
       assertThat(errors.getFirst().getMsg())
           .isEqualTo(
-              CONCAT_DATE_ERROR.formatted(
-                  row.getRowNumber(), "DATE_OF_SAMPLING", DATE_WRONG_FORMAT));
+              CONCAT_DATE_FORMAT_ERROR.formatted(
+                  row.getRowNumber(), DATE_WRONG_FORMAT, "DATE_OF_SAMPLING"));
       assertThat(errors.getLast().getMsg())
           .isEqualTo(
-              CONCAT_DATE_ERROR.formatted(
-                  row2.getRowNumber(), "DATE_OF_SAMPLING", DATE_WRONG_FORMAT));
+              CONCAT_DATE_FORMAT_ERROR.formatted(
+                  row2.getRowNumber(), DATE_WRONG_FORMAT, "DATE_OF_SAMPLING"));
     }
 
     @ParameterizedTest
@@ -196,10 +261,15 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
     void shouldFindOneErrorInOneLine(String value) {
       IgsOverviewCsv row = firstRowBuilder.build();
       row.setMeldetatbestand(value);
+
+      mockMessageWithRowNumber(row);
+      mockMessageForErrorRequired(messageSourceWrapper, "MELDETATBESTAND");
+
       List<ValidationError> errors = getRequiredFieldsErrors(row);
+
       assertThat(errors).hasSize(1);
       assertThat(errors.getFirst().getMsg())
-          .isEqualTo(CONCAT_REQUIRE_ERROR.formatted(row.getRowNumber(), "MELDETATBESTAND"));
+          .isEqualTo(CONCAT_REQUIRED_ERROR.formatted(row.getRowNumber(), "MELDETATBESTAND"));
       assertThat(errors.getFirst().getErrorCode()).isEqualTo(ErrorCode.REQUIRED_FIELD);
       assertThat(errors.getFirst().getFoundValue()).isNull();
       assertThat(errors.getFirst().getRowNumber()).isEqualTo(row.getRowNumber());
@@ -213,12 +283,18 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
       IgsOverviewCsv row = firstRowBuilder.build();
       row.setMeldetatbestand(value);
       row.setSpeciesCode(value);
+
+      mockMessageWithRowNumber(row);
+
+      mockMessageForErrorRequired(messageSourceWrapper, "MELDETATBESTAND");
+      mockMessageForErrorRequired(messageSourceWrapper, "SPECIES_CODE");
+
       List<ValidationError> errors = getRequiredFieldsErrors(row);
       assertThat(errors).hasSize(2);
       assertThat(errors.stream().map(ValidationError::getMsg))
           .containsExactlyInAnyOrder(
-              CONCAT_REQUIRE_ERROR.formatted(row.getRowNumber(), "SPECIES_CODE"),
-              CONCAT_REQUIRE_ERROR.formatted(row.getRowNumber(), "MELDETATBESTAND"));
+              CONCAT_REQUIRED_ERROR.formatted(row.getRowNumber(), "SPECIES_CODE"),
+              CONCAT_REQUIRED_ERROR.formatted(row.getRowNumber(), "MELDETATBESTAND"));
       assertThat(errors.stream().map(ValidationError::getColumnName))
           .containsExactlyInAnyOrder("SPECIES_CODE", "MELDETATBESTAND");
       assertThat(errors.stream().map(ValidationError::getFoundValue)).allMatch(Objects::isNull);
@@ -235,16 +311,23 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
       row.setMeldetatbestand(value);
       row2.setMeldetatbestand(value);
 
+      mockMessageWithRowNumber(row);
+      mockMessageWithRowNumber(row2);
+
+      mockMessageForErrorRequired(messageSourceWrapper, "MELDETATBESTAND");
+      mockMessageForErrorRequired(messageSourceWrapper, "SPECIES_CODE");
+
       List<ValidationError> errors = getRequiredFieldsErrors(row, row2);
+
       assertThat(errors).hasSize(2);
       assertThat(errors.getFirst().getMsg())
-          .isEqualTo(CONCAT_REQUIRE_ERROR.formatted(row.getRowNumber(), "MELDETATBESTAND"));
+          .isEqualTo(CONCAT_REQUIRED_ERROR.formatted(row.getRowNumber(), "MELDETATBESTAND"));
       assertThat(errors.getFirst().getErrorCode()).isEqualTo(ErrorCode.REQUIRED_FIELD);
       assertThat(errors.getFirst().getFoundValue()).isNull();
       assertThat(errors.getFirst().getRowNumber()).isEqualTo(row.getRowNumber());
       assertThat(errors.getFirst().getColumnName()).isEqualTo("MELDETATBESTAND");
       assertThat(errors.getLast().getMsg())
-          .isEqualTo(CONCAT_REQUIRE_ERROR.formatted(row2.getRowNumber(), "MELDETATBESTAND"));
+          .isEqualTo(CONCAT_REQUIRED_ERROR.formatted(row2.getRowNumber(), "MELDETATBESTAND"));
       assertThat(errors.getLast().getErrorCode()).isEqualTo(ErrorCode.REQUIRED_FIELD);
       assertThat(errors.getLast().getFoundValue()).isNull();
       assertThat(errors.getLast().getRowNumber()).isEqualTo(row2.getRowNumber());
@@ -288,5 +371,23 @@ class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
       assertThat(errors.stream().filter(e -> e.getErrorCode() == ErrorCode.REQUIRED_FIELD).toList())
           .hasSize(2);
     }
+  }
+
+  private void mockMessageWithRowNumber(IgsOverviewCsv row) {
+    String rowNumber = String.valueOf(row.getRowNumber());
+    when(messageSourceWrapper.getMessage(ERROR_PREFIX, rowNumber))
+        .thenReturn(MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted(rowNumber));
+  }
+
+  private void mockMessageForErrorDateFormat(
+      MessageSourceWrapper messageSourceWrapper, String columnName, String invalidValue) {
+    when(messageSourceWrapper.getMessage(ERROR_DATE_FORMAT, columnName, invalidValue))
+        .thenReturn(MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS.formatted(invalidValue, columnName));
+  }
+
+  private void mockMessageForErrorRequired(
+      MessageSourceWrapper messageSourceWrapper, String columnName) {
+    when(messageSourceWrapper.getMessage(ERROR_REQUIRED, columnName))
+        .thenReturn(MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted(columnName));
   }
 }

@@ -19,20 +19,44 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
+import de.gematik.demis.igs.gateway.configuration.MessagesProperties;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.rules.UniqueFilenameRule;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class UniqueFilenameRuleTest extends AbstractValidatorRuleTest {
 
   public static final String SAMPLE_FILE_NAME = "filename";
-  private final UniqueFilenameRule rule = new UniqueFilenameRule();
+  private static final MessageSourceWrapper MESSAGE_SOURCE_WRAPPER =
+      mock(MessageSourceWrapper.class);
+  private final UniqueFilenameRule rule = new UniqueFilenameRule(MESSAGE_SOURCE_WRAPPER);
+
+  @BeforeEach
+  void setUp() {
+    String formattedMessage = MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted(SAMPLE_FILE_NAME);
+    when(MESSAGE_SOURCE_WRAPPER.getMessage(
+            MessagesProperties.ERROR_DUPLICATE_FILE_NAME, SAMPLE_FILE_NAME))
+        .thenReturn(formattedMessage);
+  }
 
   @Test
   void shouldFindNoErrors() {
@@ -47,6 +71,7 @@ class UniqueFilenameRuleTest extends AbstractValidatorRuleTest {
     IgsOverviewCsv secondRow = secondRowBuilder.build();
     secondRow.setFileOneName(SAMPLE_FILE_NAME);
     secondRow.setFileTwoName(SAMPLE_FILE_NAME);
+    mockMessageWithRowNumber(secondRow);
     List<ValidationError> errors =
         rule.applyOnValues(List.of(firstRowBuilder.build(), secondRow, thirdRowBuilder.build()));
     assertThat(errors).hasSize(1);
@@ -59,6 +84,10 @@ class UniqueFilenameRuleTest extends AbstractValidatorRuleTest {
     IgsOverviewCsv thirdRow = thirdRowBuilder.build();
     secondRow.setFileOneName(SAMPLE_FILE_NAME);
     thirdRow.setFileTwoName(SAMPLE_FILE_NAME);
+
+    mockMessageWithRowNumber(secondRow);
+    mockMessageWithRowNumber(thirdRow);
+
     List<ValidationError> errors =
         rule.applyOnValues(List.of(firstRowBuilder.build(), secondRow, thirdRow));
     assertThat(errors).hasSize(1);
@@ -67,13 +96,18 @@ class UniqueFilenameRuleTest extends AbstractValidatorRuleTest {
 
   @Test
   void shouldWriteMultipleErrorWithIdenticalFilenamesInDifferentRows() {
-    UniqueFilenameRule rule = new UniqueFilenameRule();
+    UniqueFilenameRule rule = new UniqueFilenameRule(MESSAGE_SOURCE_WRAPPER);
     IgsOverviewCsv firstRow = firstRowBuilder.build();
     IgsOverviewCsv secondRow = secondRowBuilder.build();
     IgsOverviewCsv thirdRow = thirdRowBuilder.build();
     firstRow.setFileOneName(SAMPLE_FILE_NAME);
     secondRow.setFileOneName(SAMPLE_FILE_NAME);
     thirdRow.setFileTwoName(SAMPLE_FILE_NAME);
+
+    mockMessageWithRowNumber(firstRow);
+    mockMessageWithRowNumber(secondRow);
+    mockMessageWithRowNumber(thirdRow);
+
     List<ValidationError> errors = rule.applyOnValues(List.of(firstRow, secondRow, thirdRow));
     assertThat(errors).hasSize(2);
     applyOnValuesValidationError(errors.getFirst(), secondRow.getRowNumber());
@@ -82,10 +116,15 @@ class UniqueFilenameRuleTest extends AbstractValidatorRuleTest {
 
   private void applyOnValuesValidationError(ValidationError error, long rowNumber) {
     final String CONCAT_ERROR =
-        ValidationError.ErrorMessage.PREFIX.msg()
-            + ValidationError.ErrorMessage.DUPLICATE_FILE_NAME.msg();
+        MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER + MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER;
     assertThat(error.getMsg()).isEqualTo(CONCAT_ERROR.formatted(rowNumber, SAMPLE_FILE_NAME));
     assertThat(error.getRowNumber()).isEqualTo(rowNumber);
     assertThat(error.getErrorCode()).isEqualTo(ValidationError.ErrorCode.UNIQUE_FILENAME);
+  }
+
+  private void mockMessageWithRowNumber(IgsOverviewCsv row) {
+    String rowNumber = String.valueOf(row.getRowNumber());
+    when(MESSAGE_SOURCE_WRAPPER.getMessage(ERROR_PREFIX, rowNumber))
+        .thenReturn(MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted(rowNumber));
   }
 }

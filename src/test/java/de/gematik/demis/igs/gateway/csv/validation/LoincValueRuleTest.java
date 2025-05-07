@@ -19,19 +19,30 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER;
+import static de.gematik.demis.igs.gateway.TestUtils.MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_LOINC_CODE;
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.rules.CsvValidationRule;
 import de.gematik.demis.igs.gateway.csv.validation.rules.LoincValueRule;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -40,11 +51,27 @@ class LoincValueRuleTest extends AbstractValidatorRuleTest {
   private static final String SEQUENCING_REASON_COLUMN_NAME = "SEQUENCING_REASON";
   private static final String UPLOAD_STATUS_COLUMN_NAME = "UPLOAD_STATUS";
   private static final String LOINC_ERROR_MESSAGE =
-      ValidationError.ErrorMessage.PREFIX.msg() + ValidationError.ErrorMessage.LOINC_CODE.msg();
+      MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER + MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS;
+  private MessageSourceWrapper messageSourceWrapper;
+  private ValueSetMappingService valueSetMappingService;
+  private CsvValidationRule underTest;
 
-  private final ValueSetMappingService valueSetMappingService =
-      Mockito.mock(ValueSetMappingService.class);
-  private final CsvValidationRule underTest = new LoincValueRule(valueSetMappingService);
+  @BeforeEach
+  void setUp() {
+    messageSourceWrapper = Mockito.mock(MessageSourceWrapper.class);
+    valueSetMappingService = Mockito.mock(ValueSetMappingService.class);
+
+    when(messageSourceWrapper.getMessage(eq(ERROR_LOINC_CODE), anyString(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              String foundValue = invocation.getArgument(1, String.class);
+              String csvColumnName = invocation.getArgument(2, String.class);
+              return MOCKED_ERROR_MESSAGE_WITH_TWO_PLACEHOLDERS.formatted(
+                  foundValue, csvColumnName);
+            });
+
+    underTest = new LoincValueRule(messageSourceWrapper, valueSetMappingService);
+  }
 
   @Test
   void shouldReturnNoErrors() {
@@ -59,6 +86,7 @@ class LoincValueRuleTest extends AbstractValidatorRuleTest {
   @Test
   void shouldReturnTwoErrors() {
     IgsOverviewCsv row = firstRowBuilder.build();
+    final String rowNumber = String.valueOf(row.getRowNumber());
     final String uploadStatusErrorMessage =
         LOINC_ERROR_MESSAGE.formatted(
             row.getRowNumber(), row.getUploadStatus(), UPLOAD_STATUS_COLUMN_NAME);
@@ -66,6 +94,8 @@ class LoincValueRuleTest extends AbstractValidatorRuleTest {
         LOINC_ERROR_MESSAGE.formatted(
             row.getRowNumber(), row.getSequencingReason(), SEQUENCING_REASON_COLUMN_NAME);
     when(valueSetMappingService.valueSetContains(any(), anyString())).thenReturn(false);
+    when(messageSourceWrapper.getMessage(ERROR_PREFIX, rowNumber))
+        .thenReturn((MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER).formatted(rowNumber));
 
     List<ValidationError> validationErrors = underTest.applyOnValue(row);
 

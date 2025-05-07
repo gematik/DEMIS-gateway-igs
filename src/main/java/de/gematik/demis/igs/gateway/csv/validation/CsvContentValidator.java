@@ -19,29 +19,33 @@ package de.gematik.demis.igs.gateway.csv.validation;
  * In case of changes by gematik find details in the "Readme" file.
  *
  * See the Licence for the specific language governing permissions and limitations under the Licence.
+ *
+ * *******
+ *
+ * For additional notes and disclaimer from gematik and in case of changes by gematik find details in the "Readme" file.
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_EMPTY_FILE;
+
+import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
 import de.gematik.demis.igs.gateway.csv.InvalidInputDataException;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorCode;
-import de.gematik.demis.igs.gateway.csv.validation.ValidationError.ErrorMessage;
 import de.gematik.demis.igs.gateway.csv.validation.rules.CsvValidationRule;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /** Performs validations on the CSV file. */
 @Component
+@RequiredArgsConstructor
 public class CsvContentValidator {
 
   private final List<CsvValidationRule> rules;
 
-  @Autowired
-  public CsvContentValidator(List<CsvValidationRule> rules) {
-    this.rules = rules;
-  }
+  private final MessageSourceWrapper messageSourceWrapper;
 
   /**
    * Validates CSV Data against the defined rules.
@@ -61,7 +65,7 @@ public class CsvContentValidator {
           List.of(
               ValidationError.builder()
                   .rowNumber(0)
-                  .msg(ErrorMessage.EMPTY_FILE.msg())
+                  .msg(messageSourceWrapper.getMessage(ERROR_EMPTY_FILE))
                   .errorCode(ErrorCode.EMPTY_FILE)
                   .build()));
     }
