@@ -37,12 +37,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(
     name = "futs",
     configuration = FutsClientConfiguration.class,
-    url = "${igs-gateway.client.futs}")
+    url = "${igs-gateway.client.futs.address}${igs-gateway.client.futs.context-path}")
 public interface FutsClient {
 
-  @GetMapping(value = "/ValueSet", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "ValueSet", produces = APPLICATION_JSON_VALUE)
   List<CodeDisplay> getConceptMap(@RequestParam("system") String systemName);
 
-  @GetMapping(value = "/ValueSet", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "ValueSet", produces = APPLICATION_JSON_VALUE)
   List<String> getValueSetUrls();
 }

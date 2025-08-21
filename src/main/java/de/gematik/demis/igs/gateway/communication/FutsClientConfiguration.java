@@ -28,13 +28,21 @@ package de.gematik.demis.igs.gateway.communication;
 
 import feign.RequestInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
 @Slf4j
 public class FutsClientConfiguration {
 
+  @Value("${feature.flag.new.api.endpoints}")
+  private boolean newApiEndpointsEnabled;
+
   @Bean
   public RequestInterceptor requestInterceptor() {
-    return template -> template.header("fhirProfile", "igs-profile-snapshots");
+    if (newApiEndpointsEnabled) {
+      return template -> template.header("x-fhir-profile", "igs-profile-snapshots");
+    } else {
+      return template -> template.header("fhirProfile", "igs-profile-snapshots");
+    }
   }
 }

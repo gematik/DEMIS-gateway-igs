@@ -31,7 +31,9 @@ igs-gateway:
     igs: ${IGS_SERVICE_URL:http://igs-service.demis.svc.cluster.local/surveillance/notification-sequence}
     igsPublic: ${IGS_SERVICE_URL_PUBLIC:http://localhost:8080/surveillance/notification-sequence}
     igsReadBinary: ${IGS_SERVICE_URL_READ_BINARY:/fhir/DocumentReference/{documentId}}
-    futs: ${FUTS_IGS_URL:http://futs.demis.svc.cluster.local/fhir-ui-data-model-translation}
+    futs:
+      address: ${FUTS_IGS_URL:http://futs.demis.svc.cluster.local}
+      context-path: ${FUTS_IGS_CONTEXT_PATH:/fhir-ui-data-model-translation/}
   cache:
     futs:
       cron: ${FUTS_CACH_CRON:"0 0/30 * * * *"}

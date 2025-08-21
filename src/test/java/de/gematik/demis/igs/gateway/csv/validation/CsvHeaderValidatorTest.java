@@ -54,11 +54,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CsvHeaderValidatorTest {
 
   private MessageSourceWrapper messageSourceWrapper;
   private CsvHeaderValidator underTest;
+
+  private static final String VALID_CSV_FILEPATH =
+      "src/test/resources/testdata/igs-batch-fasta-testdata_minimal.csv";
+  private static final String VALID_CSV_PATH_WITH_QUOTES =
+      "src/test/resources/testdata/igs-batch-fastq-testdata_quotes_in_header.csv";
 
   @BeforeEach
   void init() {
@@ -66,10 +72,10 @@ class CsvHeaderValidatorTest {
     underTest = new CsvHeaderValidator(messageSourceWrapper);
   }
 
-  @Test
-  void shouldFindNoErrors() {
-    final String validCsv = "src/test/resources/testdata/igs-batch-fasta-testdata_minimal.csv";
-    String csvData = readFile(validCsv);
+  @ParameterizedTest
+  @ValueSource(strings = {VALID_CSV_FILEPATH, VALID_CSV_PATH_WITH_QUOTES})
+  void shouldFindNoErrors(String validCsvPath) {
+    String csvData = readFile(validCsvPath);
     assertDoesNotThrow(() -> underTest.validate(csvData));
   }
 
@@ -95,23 +101,18 @@ class CsvHeaderValidatorTest {
         MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted("ILLEGAL_HEADER");
     final String singleQuoteIllegalHeaderMsg =
         MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted("''");
-    final String doubleQuoteIllegalHeaderMsg =
-        MOCKED_ERROR_MESSAGE_WITH_PLACEHOLDER.formatted("\"\"");
 
     when(messageSourceWrapper.getMessage(ERROR_ILLEGAL_HEADER, "ILLEGAL_HEADER"))
         .thenReturn(illegalHeaderMsg);
     when(messageSourceWrapper.getMessage(ERROR_ILLEGAL_HEADER, "''"))
         .thenReturn(singleQuoteIllegalHeaderMsg);
-    when(messageSourceWrapper.getMessage(ERROR_ILLEGAL_HEADER, "\"\""))
-        .thenReturn(doubleQuoteIllegalHeaderMsg);
 
     List<ValidationError> validationErrors = underTest.validate(csvData);
 
-    verify(messageSourceWrapper, times(3)).getMessage(any(MessagesProperties.class), anyString());
-    assertEquals(3, validationErrors.size());
+    verify(messageSourceWrapper, times(2)).getMessage(any(MessagesProperties.class), anyString());
+    assertEquals(2, validationErrors.size());
     assertThat(validationErrors.stream().map(ValidationError::getMsg))
-        .containsExactlyInAnyOrder(
-            illegalHeaderMsg, singleQuoteIllegalHeaderMsg, doubleQuoteIllegalHeaderMsg);
+        .containsExactlyInAnyOrder(illegalHeaderMsg, singleQuoteIllegalHeaderMsg);
     assertThat(validationErrors.stream().map(ValidationError::getErrorCode))
         .containsOnly(ValidationError.ErrorCode.HEADER);
   }

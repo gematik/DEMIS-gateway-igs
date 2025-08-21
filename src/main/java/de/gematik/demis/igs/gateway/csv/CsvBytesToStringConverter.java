@@ -49,7 +49,7 @@ public class CsvBytesToStringConverter {
 
   private static final int HEADER_ROW = 0;
   private static final int NUMBER_OF_FIRST_BYTES = 900;
-  private static final String CSV_HEADER_REGULAR_EXPRESSION = "^[0-9A-Z_;,.]*$";
+  private static final String CSV_HEADER_REGULAR_EXPRESSION = "^[0-9A-Z_;,.\"]*$";
 
   private final Pattern csvHeaderPattern = Pattern.compile(CSV_HEADER_REGULAR_EXPRESSION);
 
