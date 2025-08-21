@@ -3,8 +3,13 @@
 # Release Notes IGS-Gateway
 
 ## Release 1.2.0
+- Update to Spring-Parent 2.12.12
+- add support for new FUTS API Endpoints
+- change default replica to 2
 - implemented centralized message service
 - improved error handling for upload CSV
+- use x-fhir-profile Header for FUTS Request with new API Endpoints enabled
+- Updated dependencies
 
 ## Release 1.1.4
 - Updated ospo-resources for adding additional notes and disclaimer

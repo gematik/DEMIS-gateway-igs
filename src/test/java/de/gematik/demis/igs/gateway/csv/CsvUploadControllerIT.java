@@ -124,9 +124,11 @@ class CsvUploadControllerIT extends FutsMockTestTemplate {
       "src/test/resources/testdata/igs-batch-fastq-duplicate-file-names.csv";
   private static final String PATH_TO_CSV_WITH_LOCAL_DATES =
       "src/test/resources/testdata/igs-batch-fasta-testdata_local_date_format.csv";
+  private static final String PATH_TO_CSV_WITH_HEADERS =
+      "src/test/resources/testdata/igs-batch-fastq-testdata_quotes_in_header.csv";
 
   @ParameterizedTest
-  @ValueSource(strings = {PATH_TO_CSV, PATH_TO_CSV_WITH_LOCAL_DATES})
+  @ValueSource(strings = {PATH_TO_CSV, PATH_TO_CSV_WITH_LOCAL_DATES, PATH_TO_CSV_WITH_HEADERS})
   void shouldUploadCsv(String pathToCsv) throws Exception {
     byte[] csvData = Files.readAllBytes(Paths.get(pathToCsv));
     valueSetMappingService.refreshCachedValues();

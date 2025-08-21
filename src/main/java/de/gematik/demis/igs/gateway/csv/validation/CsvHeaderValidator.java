@@ -104,6 +104,7 @@ public class CsvHeaderValidator {
   private List<String> extractHeaders(String csvData) {
     return Arrays.stream(csvData.split(SPLIT_REGEX)[HEADER_ROW].split(SEPARATOR))
         .map(String::trim)
+        .map(header -> StringUtils.strip(header, "\""))
         .filter(StringUtils::isNoneBlank)
         .toList();
   }

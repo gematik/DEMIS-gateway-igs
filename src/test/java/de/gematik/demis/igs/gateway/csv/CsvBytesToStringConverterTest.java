@@ -46,11 +46,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class CsvBytesToStringConverterTest {
 
   private static final String PATH_TO_VALID_CSV =
       "src/test/resources/testdata/igs-batch-fastq-testdata.csv";
+  private static final String PATH_TO_VALID_CSV_WITH_HEADERS =
+      "src/test/resources/testdata/igs-batch-fastq-testdata_quotes_in_header.csv";
   private static final String PATH_TO_INVALID_CSV =
       "src/test/resources/testdata/igs-batch-fasta-illegal-header.csv";
 
@@ -59,10 +62,11 @@ class CsvBytesToStringConverterTest {
   private final CsvBytesToStringConverter converter =
       new CsvBytesToStringConverter(MESSAGE_SOURCE_WRAPPER);
 
-  @Test
   @SneakyThrows
-  void shouldConvertSuccessfully() {
-    byte[] validCsv = Files.readAllBytes(Paths.get(PATH_TO_VALID_CSV));
+  @ParameterizedTest
+  @ValueSource(strings = {PATH_TO_VALID_CSV, PATH_TO_VALID_CSV_WITH_HEADERS})
+  void shouldConvertSuccessfully(String csvPath) {
+    byte[] validCsv = Files.readAllBytes(Paths.get(csvPath));
 
     String actualConverted = converter.convert(validCsv);
 
@@ -81,7 +85,6 @@ class CsvBytesToStringConverterTest {
     ValidationError error = exception.getErrors().getFirst();
     assertThat(error.getMsg()).isEqualTo(MOCKED_ERROR_MESSAGE);
     assertThat(error.getErrorCode()).isEqualTo(EMPTY_FILE);
-    ;
   }
 
   @Test
