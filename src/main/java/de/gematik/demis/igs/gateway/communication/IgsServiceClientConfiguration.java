@@ -28,15 +28,29 @@ package de.gematik.demis.igs.gateway.communication;
 
 import feign.RequestInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+@Configuration
 public class IgsServiceClientConfiguration {
 
+  @Value("${feature.flag.new.api.endpoints}")
+  private boolean newApiEndpointsEnabled;
+
+  @Value("${igs.profile.version}")
+  private String igsProfileVersion;
+
   @Bean
-  public RequestInterceptor requestInterceptor() {
+  public RequestInterceptor igsRequestInterceptor() {
     return template -> {
+      if (newApiEndpointsEnabled) {
+        template.header("x-fhir-profile", "igs-profile-snapshots");
+        template.header("x-fhir-api-version", igsProfileVersion);
+      }
+
       ServletRequestAttributes attributes =
           (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
       if (attributes == null) {

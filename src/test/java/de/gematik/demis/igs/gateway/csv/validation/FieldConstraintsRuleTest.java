@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest
+@SpringBootTest()
 class FieldConstraintsRuleTest extends SpringValidatorRuleTest {
 
   @MockitoBean private MessageSourceWrapper messageSourceWrapper;

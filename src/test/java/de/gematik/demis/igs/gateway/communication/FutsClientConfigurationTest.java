@@ -58,7 +58,7 @@ class FutsClientConfigurationTest {
     RequestTemplate template = mock(RequestTemplate.class);
 
     // when
-    RequestInterceptor interceptor = configuration.requestInterceptor();
+    RequestInterceptor interceptor = configuration.futsRequestInterceptor();
     interceptor.apply(template);
 
     // then

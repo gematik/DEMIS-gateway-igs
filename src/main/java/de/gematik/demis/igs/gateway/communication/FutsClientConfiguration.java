@@ -30,7 +30,9 @@ import feign.RequestInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 @Slf4j
 public class FutsClientConfiguration {
 
@@ -38,7 +40,7 @@ public class FutsClientConfiguration {
   private boolean newApiEndpointsEnabled;
 
   @Bean
-  public RequestInterceptor requestInterceptor() {
+  public RequestInterceptor futsRequestInterceptor() {
     if (newApiEndpointsEnabled) {
       return template -> template.header("x-fhir-profile", "igs-profile-snapshots");
     } else {

@@ -38,30 +38,31 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.TestPropertySource;
 
-@SpringBootTest(classes = {FutsClientConfigurationDisabledTest.TestConfig.class})
-@TestPropertySource(properties = "feature.flag.new.api.endpoints=false")
-class FutsClientConfigurationDisabledTest {
+@SpringBootTest(classes = {IgsServiceClientConfigurationTest.TestConfig.class})
+@TestPropertySource(properties = {"feature.flag.new.api.endpoints=true", "igs.profile.version=v3"})
+class IgsServiceClientConfigurationTest {
 
   @Configuration
   static class TestConfig {
     @Bean
-    public FutsClientConfiguration futsClientConfiguration() {
-      return new FutsClientConfiguration();
+    public IgsServiceClientConfiguration igsServiceClientConfiguration() {
+      return new IgsServiceClientConfiguration();
     }
   }
 
-  @Autowired private FutsClientConfiguration configuration;
+  @Autowired private IgsServiceClientConfiguration configuration;
 
   @Test
-  void shouldSetLegacyHeaderWhenFeatureFlagIsDisabled() {
+  void shouldSetNewApiHeaderWhenFeatureFlagIsEnabled() {
     // given
     RequestTemplate template = mock(RequestTemplate.class);
 
     // when
-    RequestInterceptor interceptor = configuration.futsRequestInterceptor();
+    RequestInterceptor interceptor = configuration.igsRequestInterceptor();
     interceptor.apply(template);
 
     // then
-    verify(template).header("fhirProfile", "igs-profile-snapshots");
+    verify(template).header("x-fhir-profile", "igs-profile-snapshots");
+    verify(template).header("x-fhir-api-version", "v3");
   }
 }

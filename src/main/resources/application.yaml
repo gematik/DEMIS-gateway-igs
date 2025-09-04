@@ -37,3 +37,13 @@ igs-gateway:
   cache:
     futs:
       cron: ${FUTS_CACH_CRON:"0 0/30 * * * *"}
+
+igs:
+  profile:
+    version: v3
+
+feature:
+  flag:
+    new:
+      api:
+        endpoints: false

@@ -27,10 +27,10 @@ package de.gematik.demis.igs.gateway.communication;
  */
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,19 +38,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.TestPropertySource;
 
-@SpringBootTest(classes = {FutsClientConfigurationDisabledTest.TestConfig.class})
+@SpringBootTest(classes = {IgsServiceClientConfigurationDisabledTest.TestConfig.class})
 @TestPropertySource(properties = "feature.flag.new.api.endpoints=false")
-class FutsClientConfigurationDisabledTest {
+class IgsServiceClientConfigurationDisabledTest {
 
   @Configuration
   static class TestConfig {
     @Bean
-    public FutsClientConfiguration futsClientConfiguration() {
-      return new FutsClientConfiguration();
+    public IgsServiceClientConfiguration igsServiceClientConfiguration() {
+      return new IgsServiceClientConfiguration();
     }
   }
 
-  @Autowired private FutsClientConfiguration configuration;
+  @Autowired private IgsServiceClientConfiguration configuration;
 
   @Test
   void shouldSetLegacyHeaderWhenFeatureFlagIsDisabled() {
@@ -58,10 +58,11 @@ class FutsClientConfigurationDisabledTest {
     RequestTemplate template = mock(RequestTemplate.class);
 
     // when
-    RequestInterceptor interceptor = configuration.futsRequestInterceptor();
+    RequestInterceptor interceptor = configuration.igsRequestInterceptor();
     interceptor.apply(template);
 
     // then
-    verify(template).header("fhirProfile", "igs-profile-snapshots");
+    Assertions.assertFalse(template.headers().containsKey("x-fhir-profile"));
+    Assertions.assertFalse(template.headers().containsKey("x-fhir-api-version"));
   }
 }
