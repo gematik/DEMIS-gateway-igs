@@ -74,7 +74,7 @@ spec:
               value: "/"
             {{- else if eq (.Values.customEnvVars.FEATURE_FLAG_NEW_API_ENDPOINTS | toString) "true" }}
             - name: "FUTS_IGS_CONTEXT_PATH"
-              value: "/v3/fhir/"
+              value: "/"
             {{- end }}
             {{- if .Values.debug.enable }}
             - name: "JAVA_TOOL_OPTIONS"

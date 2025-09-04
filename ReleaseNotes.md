@@ -2,6 +2,11 @@
 
 # Release Notes IGS-Gateway
 
+## Release 1.2.1
+- Add extra header for new FUTS API endpoints
+- Added extra headers for Validation Service requests
+- Updated dependencies
+
 ## Release 1.2.0
 - Update to Spring-Parent 2.12.12
 - add support for new FUTS API Endpoints
