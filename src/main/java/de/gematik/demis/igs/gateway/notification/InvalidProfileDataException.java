@@ -26,22 +26,10 @@ package de.gematik.demis.igs.gateway.notification;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+/** Indicates that data has been provided that does not conform to the expected profile. */
+public class InvalidProfileDataException extends RuntimeException {
 
-@RestController
-@AllArgsConstructor
-public class NotificationSequenceController {
-
-  private NotificationSequenceService notificationSequenceService;
-
-  @PostMapping(path = "/notification-sequence/$process-notification-sequence")
-  public ResponseEntity<String> sendNotificationSequence(
-      @RequestBody IgsOverviewModel notificationData) {
-
-    return notificationSequenceService.sendNotificationSequence(notificationData);
+  public InvalidProfileDataException(String message) {
+    super(message);
   }
 }

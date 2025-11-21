@@ -26,22 +26,27 @@ package de.gematik.demis.igs.gateway.notification;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import de.gematik.demis.notification.builder.demis.fhir.notification.utils.VersionInfos;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@RestController
-@AllArgsConstructor
-public class NotificationSequenceController {
+@Configuration
+public class CodeSystemVersions {
 
-  private NotificationSequenceService notificationSequenceService;
+  @Value("${igs.code-systems.loinc.version}")
+  private String loincVersion;
 
-  @PostMapping(path = "/notification-sequence/$process-notification-sequence")
-  public ResponseEntity<String> sendNotificationSequence(
-      @RequestBody IgsOverviewModel notificationData) {
+  @Value("${igs.code-systems.snomed.version}")
+  private String snomedVersion;
 
-    return notificationSequenceService.sendNotificationSequence(notificationData);
+  /**
+   * Determines the versions of the code systems as required by the notification builder library.
+   *
+   * @return The versions of the code systems as required by the notification builder library.
+   */
+  @Bean
+  public VersionInfos determineCodeSystemVersions() {
+    return new VersionInfos(loincVersion, snomedVersion);
   }
 }

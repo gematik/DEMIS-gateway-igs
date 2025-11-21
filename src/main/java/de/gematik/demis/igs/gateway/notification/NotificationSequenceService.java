@@ -29,6 +29,8 @@ package de.gematik.demis.igs.gateway.notification;
 import ca.uhn.fhir.parser.IParser;
 import de.gematik.demis.igs.gateway.communication.IgsServiceClient;
 import de.gematik.demis.notification.builder.demis.fhir.notification.builder.infectious.laboratory.ProcessNotificationSequenceRequestParametersBuilder;
+import de.gematik.demis.notification.builder.demis.fhir.notification.builder.technicals.igs.InvalidInputDataException;
+import de.gematik.demis.notification.builder.demis.fhir.notification.utils.VersionInfos;
 import feign.FeignException;
 import feign.Response;
 import feign.Util;
@@ -49,6 +51,7 @@ class NotificationSequenceService {
   private IgsServiceClient igsServiceClient;
   private IParser fhirParser;
   private NotificationSequenceDataProcessor notificationSequenceDataProcessor;
+  private VersionInfos codeSystemVersions;
 
   /**
    * Generates an IGS notification and sends it to NCAPI.
@@ -60,9 +63,16 @@ class NotificationSequenceService {
 
     notificationData = notificationSequenceDataProcessor.processNotificationData(notificationData);
 
-    String fhirNotificationSequenceJson =
-        fhirParser.encodeResourceToString(
-            new ProcessNotificationSequenceRequestParametersBuilder(notificationData).build());
+    String fhirNotificationSequenceJson;
+    try {
+      fhirNotificationSequenceJson =
+          fhirParser.encodeResourceToString(
+              new ProcessNotificationSequenceRequestParametersBuilder(
+                      notificationData, codeSystemVersions)
+                  .build());
+    } catch (InvalidInputDataException exception) {
+      throw new InvalidProfileDataException(exception.getMessage());
+    }
     try (Response response =
         igsServiceClient.sendNotificationSequence(fhirNotificationSequenceJson)) {
       if (response.status() >= 200 && response.status() < 300) {

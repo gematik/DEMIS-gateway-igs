@@ -14,7 +14,7 @@ See the Licence for the specific language governing permissions and limitations 
 
 This project includes:
   AOP alliance under Public Domain
-  Apache Commons BeanUtils under Apache License, Version 2.0
+  Apache Commons BeanUtils under Apache-2.0
   Apache Commons Codec under Apache-2.0
   Apache Commons Collections under Apache License, Version 2.0
   Apache Commons Compress under Apache-2.0
@@ -22,7 +22,7 @@ This project includes:
   Apache Commons FileUpload under Apache-2.0
   Apache Commons IO under Apache-2.0
   Apache Commons Lang under Apache-2.0
-  Apache Commons Logging under The Apache Software License, Version 2.0
+  Apache Commons Logging under Apache-2.0
   Apache Commons Net under Apache License, Version 2.0
   Apache Commons Text under Apache License, Version 2.0
   Apache HttpClient under Apache License, Version 2.0
@@ -33,6 +33,7 @@ This project includes:
   Apache Jena - Core under The Apache Software License, Version 2.0
   Apache Jena - IRI under The Apache Software License, Version 2.0
   Apache Jena - IRI3986 under The Apache Software License, Version 2.0
+  Apache Jena - Language tags under The Apache Software License, Version 2.0
   Apache Jena - ShEx under The Apache Software License, Version 2.0
   Apache Log4j API under Apache-2.0
   Apache Thrift under The Apache Software License, Version 2.0
@@ -177,7 +178,10 @@ This project includes:
   swagger-annotations-jakarta under Apache License 2.0
   swagger-core-jakarta under Apache License 2.0
   swagger-models-jakarta under Apache License 2.0
+  Titanium JCS under Apache License, Version 2.0
   Titanium JSON-LD 1.1 (JRE11) under Apache License, Version 2.0
+  Titanium RDF API under Apache License, Version 2.0
+  Titanium RDF N-QUADS under Apache License, Version 2.0
   tomcat-embed-core under Apache License, Version 2.0
   tomcat-embed-el under Apache License, Version 2.0
   tomcat-embed-websocket under Apache License, Version 2.0

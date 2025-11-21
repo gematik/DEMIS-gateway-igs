@@ -31,6 +31,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 import de.gematik.demis.igs.gateway.csv.CsvParseException;
 import de.gematik.demis.igs.gateway.csv.InvalidInputDataException;
+import de.gematik.demis.igs.gateway.notification.InvalidProfileDataException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ProblemDetail;
@@ -49,7 +50,9 @@ public class DefaultExceptionHandler {
 
   public static final String ERROR_MESSAGE_VALIDATION =
       "Error occurred during CSV validation. Please see errorReport";
+  public static final String ERROR_MESSAGE_CSV_PARSING_ERROR = "CSV Parsing Error";
   public static final String ERROR_MESSAGE_INVALID_INPUT = "Ungültige Eingabe-Daten";
+  public static final String ERROR_MESSAGE_MISSING_PARAMETER = "Fehlender Request Parameter";
   private static final String LOG_ERROR_MESSAGE = "An exception occurred: ";
 
   /**
@@ -79,11 +82,7 @@ public class DefaultExceptionHandler {
   @ResponseStatus(BAD_REQUEST)
   @ResponseBody
   public ResponseEntity<ProblemDetail> csvParseError(Exception exception) {
-    log.info(LOG_ERROR_MESSAGE, exception);
-    ProblemDetail problemDetail = ProblemDetail.forStatus(BAD_REQUEST);
-    problemDetail.setTitle("CSV Parsing Error");
-    problemDetail.setDetail(exception.getMessage());
-    return ResponseEntity.badRequest().body(problemDetail);
+    return generateBadRequestWithTitle(exception, ERROR_MESSAGE_CSV_PARSING_ERROR);
   }
 
   /**
@@ -97,9 +96,28 @@ public class DefaultExceptionHandler {
   @ResponseBody
   public ResponseEntity<ProblemDetail> missingParameterError(
       MissingServletRequestParameterException exception) {
+    return generateBadRequestWithTitle(exception, ERROR_MESSAGE_MISSING_PARAMETER);
+  }
+
+  /**
+   * Handling errors related to generating FHIR resources from user input.
+   *
+   * @param exception The thrown exception
+   * @return The ResponseEntity that should be returned to the user
+   */
+  @ExceptionHandler(InvalidProfileDataException.class)
+  @ResponseStatus(BAD_REQUEST)
+  @ResponseBody
+  public ResponseEntity<ProblemDetail> invalidDataForFhirResource(
+      InvalidProfileDataException exception) {
+    return generateBadRequestWithTitle(exception, ERROR_MESSAGE_INVALID_INPUT);
+  }
+
+  private ResponseEntity<ProblemDetail> generateBadRequestWithTitle(
+      Exception exception, String title) {
     log.info(LOG_ERROR_MESSAGE, exception);
     ProblemDetail problemDetail = ProblemDetail.forStatus(BAD_REQUEST);
-    problemDetail.setTitle("Fehlender Request Parameter");
+    problemDetail.setTitle(title);
     problemDetail.setDetail(exception.getMessage());
     return ResponseEntity.badRequest().body(problemDetail);
   }

@@ -26,6 +26,7 @@ package de.gematik.demis.igs.gateway.notification;
  * #L%
  */
 
+import static de.gematik.demis.igs.gateway.TestUtils.determineVersionInfos;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,7 +70,8 @@ class NotificationSequenceServiceTest {
         new NotificationSequenceService(
             igsServiceClient,
             FhirContext.forR4Cached().newJsonParser(),
-            notificationSequenceDataProcessor);
+            notificationSequenceDataProcessor,
+            determineVersionInfos());
   }
 
   @AfterEach
