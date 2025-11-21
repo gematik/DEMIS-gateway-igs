@@ -39,6 +39,8 @@ customEnvVars:
   FUTS_IGS_URL: http://futs.demis.svc.cluster.local
   FEATURE_FLAG_NEW_API_ENDPOINTS: false
   IGS_PROFILE_VERSION: "v3"
+  IGS_PROFILE_CODE_SYSTEM_LOINC_VERSION: "2.79"
+  IGS_PROFILE_CODE_SYSTEM_SNOMED_VERSION: "http://snomed.info/sct/11000274103/version/20241115"
 
 # Define Image Pull Secrets if using private registry
 imagePullSecrets: []

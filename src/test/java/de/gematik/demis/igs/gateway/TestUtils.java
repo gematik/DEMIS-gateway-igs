@@ -27,6 +27,7 @@ package de.gematik.demis.igs.gateway;
  */
 
 import de.gematik.demis.igs.gateway.csv.futs.CodeDisplay;
+import de.gematik.demis.notification.builder.demis.fhir.notification.utils.VersionInfos;
 import java.util.List;
 
 public class TestUtils {
@@ -68,4 +69,8 @@ public class TestUtils {
           new CodeDisplay(SEQUENCING_REASON_RANDOM_CODE, SEQUENCING_REASON_RANDOM, CODE_SYSTEM),
           new CodeDisplay(
               SEQUENCING_REASON_REQUESTED_CODE, SEQUENCING_REASON_REQUESTED, CODE_SYSTEM));
+
+  public static VersionInfos determineVersionInfos() {
+    return new VersionInfos("2.79", "http://snomed.info/sct/11000274103/version/20241115");
+  }
 }

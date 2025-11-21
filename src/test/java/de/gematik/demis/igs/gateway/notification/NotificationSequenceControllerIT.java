@@ -43,9 +43,15 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Year;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -166,5 +172,79 @@ class NotificationSequenceControllerIT extends FutsMockTestTemplate {
                 .value(
                     Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d+Z")))
         .andReturn();
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldThrowBadRequestOnInvalidGender() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    IgsOverviewModel igsOverviewModel = NotificationTestDataGenerator.generateIgsOverviewModel();
+    igsOverviewModel.setHostSex("androgynous");
+    String notificationData = objectMapper.writeValueAsString(igsOverviewModel);
+
+    mockMvc
+        .perform(
+            post("/notification-sequence/$process-notification-sequence")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(notificationData))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Ungültige Eingabe-Daten"))
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.detail").value("Unknown AdministrativeGender code 'androgynous'"))
+        .andExpect(
+            jsonPath("$.instance").value("/notification-sequence/$process-notification-sequence"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"November", "13"})
+  @SneakyThrows
+  void shouldThrowBadRequestOnInvalidBirthdayMonth(String invalidMonth) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    IgsOverviewModel igsOverviewModel = NotificationTestDataGenerator.generateIgsOverviewModel();
+    igsOverviewModel.setHostBirthMonth(invalidMonth);
+    String notificationData = objectMapper.writeValueAsString(igsOverviewModel);
+
+    mockMvc
+        .perform(
+            post("/notification-sequence/$process-notification-sequence")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(notificationData))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Ungültige Eingabe-Daten"))
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.detail").value(String.format("Invalid birthday month: %s", invalidMonth)))
+        .andExpect(
+            jsonPath("$.instance").value("/notification-sequence/$process-notification-sequence"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidBirthYear")
+  @SneakyThrows
+  void shouldThrowBadRequestOnInvalidBirthYear(String birthYear) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    IgsOverviewModel igsOverviewModel = NotificationTestDataGenerator.generateIgsOverviewModel();
+    igsOverviewModel.setHostBirthYear(birthYear);
+    String notificationData = objectMapper.writeValueAsString(igsOverviewModel);
+
+    mockMvc
+        .perform(
+            post("/notification-sequence/$process-notification-sequence")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(notificationData))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Ungültige Eingabe-Daten"))
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.detail").value(String.format("Invalid birthday year: %s", birthYear)))
+        .andExpect(
+            jsonPath("$.instance").value("/notification-sequence/$process-notification-sequence"));
+  }
+
+  private static Stream<Arguments> invalidBirthYear() {
+    return Stream.of(
+        Arguments.of("twenty twenty"),
+        Arguments.of("1799"),
+        Arguments.of("" + Year.now().getValue() + 1));
   }
 }

@@ -7,9 +7,9 @@ All URIs are relative to *http://localhost*
 
 | Class | Method | HTTP request | Description |
 |------------ | ------------- | ------------- | -------------|
-| *CsvUploadControllerApi* | [**uploadCsv**](Apis/CsvUploadControllerApi.md#uploadcsv) | **POST** /csv/upload |  |
-| *DocumentReferenceControllerApi* | [**createDocumentReference**](Apis/DocumentReferenceControllerApi.md#createdocumentreference) | **POST** /document-reference |  |
-| *NotificationSequenceControllerApi* | [**sendNotificationSequence**](Apis/NotificationSequenceControllerApi.md#sendnotificationsequence) | **POST** /notification-sequence/$process-notification-sequence |  |
+| *CsvUploadControllerApi* | [**uploadCsv**](Apis/CsvUploadControllerApi.md#uploadCsv) | **POST** /csv/upload |  |
+| *DocumentReferenceControllerApi* | [**createDocumentReference**](Apis/DocumentReferenceControllerApi.md#createDocumentReference) | **POST** /document-reference |  |
+| *NotificationSequenceControllerApi* | [**sendNotificationSequence**](Apis/NotificationSequenceControllerApi.md#sendNotificationSequence) | **POST** /notification-sequence/$process-notification-sequence |  |
 
 
 <a name="documentation-for-models"></a>

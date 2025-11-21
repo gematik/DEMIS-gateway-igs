@@ -2,6 +2,13 @@
 
 # Release Notes IGS-Gateway
 
+## Release 1.3.0
+- Support for strict profiles added
+
+## Release 1.2.2
+- Invalid input data for host birthday or sex will be handled with a proper status code and error message
+- Updated spring-parent
+
 ## Release 1.2.1
 - Add extra header for new FUTS API endpoints
 - Added extra headers for Validation Service requests
