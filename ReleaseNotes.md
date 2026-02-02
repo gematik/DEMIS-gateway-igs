@@ -1,6 +1,8 @@
-<img align="right" alt="gematik" width="250" height="47" src="media/Gematik_Logo_Flag.png"/> <br/>    
+<div style="text-align:right"><img src="https://raw.githubusercontent.com/gematik/gematik.github.io/master/Gematik_Logo_Flag_With_Background.png" width="250" height="47" alt="gematik GmbH Logo"/> <br/> </div> <br/>    
 
 # Release Notes IGS-Gateway
+
+## Release 1.3.1
 
 ## Release 1.3.0
 - Support for strict profiles added
