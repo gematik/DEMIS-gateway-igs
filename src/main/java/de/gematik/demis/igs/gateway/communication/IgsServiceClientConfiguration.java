@@ -38,16 +38,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Configuration
 public class IgsServiceClientConfiguration {
 
-  @Value("${feature.flag.new.api.endpoints}")
-  private boolean newApiEndpointsEnabled;
-
   @Value("${igs.profile.version}")
   private String igsProfileVersion;
 
   @Bean
   public RequestInterceptor igsRequestInterceptor() {
     return template -> {
-      if (newApiEndpointsEnabled) {
+      if (igsProfileVersion != null) {
         template.header("x-fhir-profile", "igs-profile-snapshots");
         template.header("x-fhir-api-version", igsProfileVersion);
       }
