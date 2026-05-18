@@ -56,7 +56,7 @@ public class DocumentReferenceServiceTest {
           Request.HttpMethod.GET, "", Collections.emptyMap(), Request.Body.empty(), null);
 
   private static final String EXPECTED_DOCUMENT_REFERENCE_JSON =
-      "{\"resourceType\":\"DocumentReference\",\"content\":[{\"attachment\":{\"hash\":\"MOCKHASH\"}}]}";
+      "{\"resourceType\":\"DocumentReference\",\"meta\":{\"profile\":[\"https://demis.rki.de/fhir/StructureDefinition/SequenceDocument\"]},\"status\":\"current\",\"type\":{\"coding\":[{\"system\":\"http://snomed.info/sct\",\"code\":\"41482005\",\"display\":\"Molecular sequence data (finding)\"}]},\"content\":[{\"attachment\":{\"hash\":\"MOCKHASH\"}}]}";
   private static final String igsServiceUrlPublic = "https://igs-service.public";
 
   @Mock private IgsServiceClient igsServiceClient;
