@@ -27,18 +27,12 @@ package de.gematik.demis.igs.gateway.communication;
  * #L%
  */
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
-
 import feign.Response;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(
-    name = "igsService",
-    url = "${igs-gateway.client.igs}",
-    configuration = IgsServiceClientConfiguration.class)
+@FeignClient(name = "igsService", url = "${igs-gateway.client.igs}")
 public interface IgsServiceClient {
 
   @PostMapping(
@@ -49,17 +43,7 @@ public interface IgsServiceClient {
 
   @PostMapping(
       value = "/fhir/$process-notification-sequence",
-      consumes = {
-        APPLICATION_JSON_VALUE,
-        APPLICATION_XML_VALUE,
-        "application/json+fhir",
-        "application/fhir+json"
-      },
-      produces = {
-        APPLICATION_JSON_VALUE,
-        APPLICATION_XML_VALUE,
-        "application/json+fhir",
-        "application/fhir+json"
-      })
+      consumes = "application/fhir+json",
+      produces = "application/fhir+json")
   Response sendNotificationSequence(@RequestBody String notificationSequenceJson);
 }

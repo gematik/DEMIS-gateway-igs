@@ -1,6 +1,13 @@
 <div style="text-align:right"><img src="https://raw.githubusercontent.com/gematik/gematik.github.io/master/Gematik_Logo_Flag_With_Background.png" width="250" height="47" alt="gematik GmbH Logo"/> <br/> </div> <br/>    
 
 # Release Notes IGS-Gateway
+
+## Release 1.4.0 
+- updated base-image and updated from java 21 to java 25
+- changed garbage collector to G1GC
+- added usage of header forwarding interceptor from service base
+- when invoking the IGS service the content-type and accept type have been restricted to application/fhir+json
+
 ## Release 1.3.2
 - Removed istio helm chart
 - Removed feature-flag NEW_API_ENDPOINTS

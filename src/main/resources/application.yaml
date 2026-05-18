@@ -39,6 +39,8 @@ igs-gateway:
       cron: ${FUTS_CACH_CRON:"0 0/30 * * * *"}
 
 igs:
+  package:
+    name: igs-profile-snapshots
   profile:
     version: v4
   code-systems:
