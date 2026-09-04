@@ -2,6 +2,17 @@
 
 # Release Notes IGS-Gateway
 
+## Release 1.5.0
+- upgraded to Spring Boot 4
+- optimized custom environment variables handling in helm chart
+- updated docker base image to gematik1/osadl-alpine-openjdk25-jre:1.0.7
+- Replaced pod anti-affinity with topology spread constraints for pod distribution
+- arranged jvm options and resource limits
+- fixed handling of falsy custom environment variables (false, 0) in helm chart
+- updated spring parent containing the latest notification builder library (9.3.0) which supports igs profile 5.0.1
+- added VEX documents to repository
+- updated spring-parent 4.1.8
+
 ## Release 1.4.0 
 - updated base-image and updated from java 21 to java 25
 - changed garbage collector to G1GC
