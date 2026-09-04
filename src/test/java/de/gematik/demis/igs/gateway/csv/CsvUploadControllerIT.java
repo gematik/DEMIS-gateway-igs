@@ -46,7 +46,6 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.gematik.demis.igs.gateway.FutsMockTestTemplate;
 import de.gematik.demis.igs.gateway.IgsOverviewCsvTestData;
 import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
@@ -67,11 +66,12 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -79,7 +79,7 @@ class CsvUploadControllerIT extends FutsMockTestTemplate {
 
   @Autowired ValueSetMappingService valueSetMappingService;
   @Autowired private MockMvc mockMvc;
-  @Autowired private ObjectMapper objectMapper;
+  @Autowired private JsonMapper jsonMapper;
   @Autowired private MessageSourceWrapper messageSourceWrapper;
 
   private String CONCAT_ERROR_DATE;
@@ -140,8 +140,7 @@ class CsvUploadControllerIT extends FutsMockTestTemplate {
             .andReturn();
 
     String responseContentString = mvcResult.getResponse().getContentAsString();
-    OverviewResponse response =
-        objectMapper.readValue(responseContentString, OverviewResponse.class);
+    OverviewResponse response = jsonMapper.readValue(responseContentString, OverviewResponse.class);
     List<OverviewParsedRowResult> parsedRowResultList = response.getItems();
 
     List<IgsOverviewCsv> expectedData = IgsOverviewCsvTestData.determineExpectedOverviewData();
@@ -233,8 +232,7 @@ class CsvUploadControllerIT extends FutsMockTestTemplate {
             .andReturn();
 
     String responseContentString = mvcResult.getResponse().getContentAsString();
-    OverviewResponse response =
-        objectMapper.readValue(responseContentString, OverviewResponse.class);
+    OverviewResponse response = jsonMapper.readValue(responseContentString, OverviewResponse.class);
     List<OverviewParsedRowResult> parsedRowResultList = response.getItems();
 
     assertThat(parsedRowResultList).hasSize(1);

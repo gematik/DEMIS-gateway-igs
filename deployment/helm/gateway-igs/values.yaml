@@ -3,6 +3,7 @@
 # Declare variables to be passed into your templates.
 debug:
   enable: false
+  params: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9000"
 
 # Number of Pod Replicas desired
 replicaCount: 2
@@ -31,10 +32,13 @@ deploymentLabels: {}
 # Define custom Container Entrypoint and Arguments (e.g. JVM Tuning)
 # If not given, the Entrypoint defined in Dockerfile will be used
 application:
-  entrypoint: ["java"]
-  parameters: ["-XX:ActiveProcessorCount=2", "-XX:MaxRAMPercentage=80.0", "-XX:+TieredCompilation", "-XX:+UseG1GC", "-jar", "/app.jar"]
+  entrypoint: []
+  parameters: []
 
 customEnvVars:
+  JAVA_TOOL_OPTIONS: "-XX:ActiveProcessorCount=2 -XX:MaxRAMPercentage=40.0 -XX:MaxMetaspaceSize=128m -XX:+UseG1GC"
+  TZ: "Europe/Berlin"
+  FUTS_IGS_CONTEXT_PATH: "/"
   IGS_SERVICE_URL: http://igs-service.demis.svc.cluster.local/surveillance/notification-sequence
   FUTS_IGS_URL: http://futs.demis.svc.cluster.local
   IGS_PROFILE_VERSION: "v3"
@@ -125,8 +129,6 @@ autoscaling:
 nodeSelector: {}
 
 tolerations: []
-
-affinity: {}
 
 istio:
   enable: false
