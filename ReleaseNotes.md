@@ -2,6 +2,9 @@
 
 # Release Notes IGS-Gateway
 
+## Release 1.5.1
+- Updated minor/patch versions of dependencies
+
 ## Release 1.5.0
 - upgraded to Spring Boot 4
 - optimized custom environment variables handling in helm chart
@@ -11,7 +14,7 @@
 - fixed handling of falsy custom environment variables (false, 0) in helm chart
 - updated spring parent containing the latest notification builder library (9.3.0) which supports igs profile 5.0.1
 - added VEX documents to repository
-- updated spring-parent 4.1.8
+- updated spring-parent 4.1.11
 
 ## Release 1.4.0 
 - updated base-image and updated from java 21 to java 25
