@@ -50,9 +50,6 @@ public class DocumentReferenceService {
   @Value("${igs-gateway.client.igsPublic}")
   private String igsServiceUrlPublic;
 
-  static final String IGS_SERVICE_DOCUMENT_REFERENCE_BINARY_ACCESS_WRITE_SUFFIX =
-      "/$binary-access-write?path=DocumentReference.content.attachment";
-
   DocumentReferenceCreatedResponse createDocumentReference(String hash) throws IgsGatewayException {
 
     String docRefJson = buildDocumentReferenceJsonString(hash);
@@ -63,13 +60,7 @@ public class DocumentReferenceService {
             response.headers().get("Location").stream()
                 .findFirst()
                 .orElseThrow(() -> new IgsGatewayException("Location header not found"));
-
-        String url =
-            igsServiceUrlPublic
-                + location
-                + IGS_SERVICE_DOCUMENT_REFERENCE_BINARY_ACCESS_WRITE_SUFFIX;
-
-        return new DocumentReferenceCreatedResponse(url);
+        return new DocumentReferenceCreatedResponse(igsServiceUrlPublic + location);
       } else {
         throw new IgsGatewayException(
             String.format(

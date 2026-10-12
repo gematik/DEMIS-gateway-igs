@@ -36,19 +36,11 @@ import java.time.Duration;
 import java.util.Date;
 import lombok.SneakyThrows;
 import org.apache.commons.beanutils.BeanUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class NotificationSequenceDataProcessorTest {
 
   NotificationSequenceDataProcessor underTest = new NotificationSequenceDataProcessor();
-
-  @BeforeEach
-  void setUp() {
-    underTest.igsPublicUrl =
-        "http://igs-service.demis.svc.cluster.local/surveillance/notification-sequence";
-    underTest.igsReadBinaryPath = "/fhir/DocumentReference/{documentId}/$binary-access-read";
-  }
 
   @Test
   @SneakyThrows
@@ -77,10 +69,7 @@ class NotificationSequenceDataProcessorTest {
 
     IgsOverviewData progressedData = underTest.processNotificationData(igsOverviewModel);
 
-    assertThat(progressedData.getFileOneDocumentReference())
-        .isEqualTo(
-            underTest.igsPublicUrl
-                + underTest.igsReadBinaryPath.replace("{documentId}", documentReferenceOne));
+    assertThat(progressedData.getFileOneDocumentReference()).isEqualTo(documentReferenceOne);
     assertThat(progressedData.getFileTwoDocumentReference()).isNull();
   }
 
@@ -95,10 +84,7 @@ class NotificationSequenceDataProcessorTest {
 
     IgsOverviewData progressedData = underTest.processNotificationData(igsOverviewModel);
 
-    assertThat(progressedData.getFileTwoDocumentReference())
-        .isEqualTo(
-            underTest.igsPublicUrl
-                + underTest.igsReadBinaryPath.replace("{documentId}", documentReferenceTwo));
+    assertThat(progressedData.getFileTwoDocumentReference()).isEqualTo(documentReferenceTwo);
     assertThat(progressedData.getFileOneDocumentReference()).isNull();
   }
 
@@ -114,13 +100,7 @@ class NotificationSequenceDataProcessorTest {
 
     IgsOverviewData progressedData = underTest.processNotificationData(igsOverviewModel);
 
-    assertThat(progressedData.getFileOneDocumentReference())
-        .isEqualTo(
-            underTest.igsPublicUrl
-                + underTest.igsReadBinaryPath.replace("{documentId}", documentReferenceOne));
-    assertThat(progressedData.getFileTwoDocumentReference())
-        .isEqualTo(
-            underTest.igsPublicUrl
-                + underTest.igsReadBinaryPath.replace("{documentId}", documentReferenceTwo));
+    assertThat(progressedData.getFileOneDocumentReference()).isEqualTo(documentReferenceOne);
+    assertThat(progressedData.getFileTwoDocumentReference()).isEqualTo(documentReferenceTwo);
   }
 }

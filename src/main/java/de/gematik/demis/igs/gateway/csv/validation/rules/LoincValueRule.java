@@ -28,10 +28,11 @@ package de.gematik.demis.igs.gateway.csv.validation.rules;
  */
 
 import static de.gematik.demis.igs.gateway.configuration.MessagesProperties.ERROR_LOINC_CODE;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.SEQUENCING_REASON;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.UPLOAD_STATUS;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.SEQUENCING_REASON;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.UPLOAD_STATUS;
 
 import de.gematik.demis.igs.gateway.configuration.MessageSourceWrapper;
+import de.gematik.demis.igs.gateway.csv.futs.IgsValueSet;
 import de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;
 import de.gematik.demis.igs.gateway.csv.validation.ValidationError;
@@ -67,11 +68,8 @@ public class LoincValueRule extends CsvValidationRule implements ErrorDecorator 
   }
 
   private Optional<ValidationError> validateLoinc(
-      IgsOverviewCsv csvRow,
-      ValueSetMappingService.System system,
-      String columnName,
-      String value) {
-    if (StringUtils.isBlank(value) || valueSetMappingService.valueSetContains(system, value)) {
+      IgsOverviewCsv csvRow, IgsValueSet igsValueSet, String columnName, String value) {
+    if (StringUtils.isBlank(value) || valueSetMappingService.valueSetContains(igsValueSet, value)) {
       return Optional.empty();
     }
     return Optional.of(loincFieldError(csvRow, columnName, value));

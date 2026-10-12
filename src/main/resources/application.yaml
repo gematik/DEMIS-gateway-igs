@@ -48,3 +48,7 @@ igs:
       version: ${IGS_PROFILE_CODE_SYSTEM_LOINC_VERSION:2.79}
     snomed:
       version: ${IGS_PROFILE_CODE_SYSTEM_SNOMED_VERSION:http://snomed.info/sct/11000274103/version/20241115}
+
+feature-flag:
+  futs:
+    static-resource-urls: ${FEATURE_FLAG_IGS_FUTS_STATIC_RESOURCE_URLS:false}

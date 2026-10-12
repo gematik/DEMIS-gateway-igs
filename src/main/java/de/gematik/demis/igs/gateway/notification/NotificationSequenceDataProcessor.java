@@ -27,7 +27,6 @@ package de.gematik.demis.igs.gateway.notification;
  * #L%
  */
 
-import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import org.springframework.beans.BeanUtils;
@@ -72,21 +71,11 @@ public class NotificationSequenceDataProcessor {
     IgsOverviewModel preprocessedOverviewData = new IgsOverviewModel();
     BeanUtils.copyProperties(notificationData, preprocessedOverviewData);
     setNotificationDateToNow(preprocessedOverviewData);
-    replaceDocumentReference(preprocessedOverviewData);
     return preprocessedOverviewData;
   }
 
   private void setNotificationDateToNow(IgsOverviewModel notificationData) {
     notificationData.setDateOfSubmission(new Date());
-  }
-
-  private void replaceDocumentReference(IgsOverviewModel data) {
-    if (StringUtils.isNotBlank(data.getFileOneDocumentReference())) {
-      data.setFileOneDocumentReference(getDownloadUrl(data.getFileOneDocumentReference()));
-    }
-    if (StringUtils.isNotBlank(data.getFileTwoDocumentReference())) {
-      data.setFileTwoDocumentReference(getDownloadUrl(data.getFileTwoDocumentReference()));
-    }
   }
 
   private String getDownloadUrl(String documentReference) {

@@ -2,6 +2,11 @@
 
 # Release Notes IGS-Gateway
 
+## Release 1.5.2
+- add direct loading ValueSets by static URLs
+- Updated minor/patch versions of dependencies
+- document reference got profile version in link
+
 ## Release 1.5.1
 - Updated minor/patch versions of dependencies
 

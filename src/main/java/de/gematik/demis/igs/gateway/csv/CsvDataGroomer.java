@@ -27,8 +27,8 @@ package de.gematik.demis.igs.gateway.csv;
  * #L%
  */
 
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.SEQUENCING_REASON;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.UPLOAD_STATUS;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.SEQUENCING_REASON;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.UPLOAD_STATUS;
 
 import de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService;
 import de.gematik.demis.igs.gateway.csv.model.IgsOverviewCsv;

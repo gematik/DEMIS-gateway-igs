@@ -32,7 +32,7 @@ import static de.gematik.demis.igs.gateway.TestUtils.LIST_UPLOAD_STATUS_CODE_DIS
 import static org.mockito.Mockito.lenient;
 
 import de.gematik.demis.igs.gateway.communication.FutsClient;
-import de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System;
+import de.gematik.demis.igs.gateway.csv.futs.IgsValueSet;
 import de.gematik.demis.igs.gateway.csv.validation.AbstractValidatorRuleTest;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +46,12 @@ public class FutsMockTestTemplate extends AbstractValidatorRuleTest {
   public void futsClient() {
     lenient()
         .when(mockFutsClient.getValueSetUrls())
-        .thenReturn(Arrays.stream(System.values()).map(s -> s.valueSetName).toList());
+        .thenReturn(Arrays.stream(IgsValueSet.values()).map(s -> s.valueSetName).toList());
     lenient()
-        .when(mockFutsClient.getConceptMap(System.UPLOAD_STATUS.valueSetName))
+        .when(mockFutsClient.getConceptMap(IgsValueSet.UPLOAD_STATUS.valueSetName))
         .thenReturn(LIST_UPLOAD_STATUS_CODE_DISPLAY);
     lenient()
-        .when(mockFutsClient.getConceptMap(System.SEQUENCING_REASON.valueSetName))
+        .when(mockFutsClient.getConceptMap(IgsValueSet.SEQUENCING_REASON.valueSetName))
         .thenReturn(LIST_SEQUENCING_REASON_CODE_DISPLAY);
   }
 }

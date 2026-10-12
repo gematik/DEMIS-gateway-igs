@@ -27,4 +27,4 @@ package de.gematik.demis.igs.gateway.documentreference;
  * #L%
  */
 
-public record DocumentReferenceCreatedResponse(String sequenceUploadUrl) {}
+public record DocumentReferenceCreatedResponse(String documentReference) {}

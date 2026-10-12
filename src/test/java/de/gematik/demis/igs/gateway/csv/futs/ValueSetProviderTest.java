@@ -35,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import de.gematik.demis.igs.gateway.communication.FutsClient;
+import de.gematik.demis.igs.gateway.configuration.FeatureFlags;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,16 +50,19 @@ class ValueSetProviderTest {
   private final String URL2 = "http://test.de/atest";
   private final String URL3 = "http://test.de/acodeSystem";
   private final String URL4 = "http://test.de/codeSystem";
-  private List<String> urlList = List.of(URL1, URL2, URL3, URL4);
+  private final List<String> urlList = List.of(URL1, URL2, URL3, URL4);
 
-  private FutsClient futsClient;
   private ValueSetProvider underTest;
 
   @BeforeEach
   void init() {
+    final FutsClient futsClient;
     futsClient = mock(FutsClient.class);
     when(futsClient.getValueSetUrls()).thenReturn(urlList);
-    underTest = spy(new ValueSetProvider(futsClient));
+    underTest =
+        spy(
+            new ValueSetProvider(
+                futsClient, FeatureFlags.builder().futsStaticResourceUrls(false).build()));
   }
 
   @Test

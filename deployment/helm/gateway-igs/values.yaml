@@ -44,6 +44,7 @@ customEnvVars:
   IGS_PROFILE_VERSION: "v3"
   IGS_PROFILE_CODE_SYSTEM_LOINC_VERSION: "2.79"
   IGS_PROFILE_CODE_SYSTEM_SNOMED_VERSION: "http://snomed.info/sct/11000274103/version/20241115"
+  FEATURE_FLAG_IGS_FUTS_STATIC_RESOURCE_URLS: "false"
 
 # Define Image Pull Secrets if using private registry
 imagePullSecrets: []

@@ -34,7 +34,7 @@ import org.springframework.web.ErrorResponseException;
 
 public class NotificationValidationException extends ErrorResponseException {
 
-  static final HttpStatus HTTP_STATUS = HttpStatus.UNPROCESSABLE_ENTITY;
+  static final HttpStatus HTTP_STATUS = HttpStatus.UNPROCESSABLE_CONTENT;
 
   public NotificationValidationException(String problemDetail) {
     super(HTTP_STATUS, problemDetailFrom(problemDetail), null);

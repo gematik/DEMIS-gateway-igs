@@ -28,8 +28,8 @@ package de.gematik.demis.igs.gateway.csv;
  */
 
 import static de.gematik.demis.igs.gateway.IgsOverviewCsvTestData.FAKE_DEMIS_NOTIFICATION_ID;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.SEQUENCING_REASON;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.UPLOAD_STATUS;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.SEQUENCING_REASON;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.UPLOAD_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
