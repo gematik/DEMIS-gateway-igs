@@ -37,8 +37,8 @@ import static de.gematik.demis.igs.gateway.TestUtils.UPLOAD_STATUS_ACCEPTED_CODE
 import static de.gematik.demis.igs.gateway.TestUtils.UPLOAD_STATUS_DENIED_CODE;
 import static de.gematik.demis.igs.gateway.TestUtils.UPLOAD_STATUS_OTHER_CODE;
 import static de.gematik.demis.igs.gateway.TestUtils.UPLOAD_STATUS_PLANNED_CODE;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.SEQUENCING_REASON;
-import static de.gematik.demis.igs.gateway.csv.futs.ValueSetMappingService.System.UPLOAD_STATUS;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.SEQUENCING_REASON;
+import static de.gematik.demis.igs.gateway.csv.futs.IgsValueSet.UPLOAD_STATUS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 
 import de.gematik.demis.igs.gateway.communication.FutsClient;
+import de.gematik.demis.igs.gateway.configuration.FeatureFlags;
 import de.gematik.demis.igs.gateway.csv.DataPreprocessingException;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -66,7 +67,7 @@ class ValueSetMappingServiceTest {
   @Mock private ValueSetProvider valueSetProvider;
   private ValueSetMappingService underTest;
 
-  public static Stream<Arguments> shouldReturnRightValuesForUploadStatus() {
+  static Stream<Arguments> determineTestdataForUploadStatus() {
     return Stream.of(
         Arguments.of("Other", UPLOAD_STATUS_OTHER_CODE),
         Arguments.of("oTHer", UPLOAD_STATUS_OTHER_CODE),
@@ -83,7 +84,7 @@ class ValueSetMappingServiceTest {
         Arguments.of(UPLOAD_STATUS_DENIED_CODE, UPLOAD_STATUS_DENIED_CODE));
   }
 
-  public static Stream<Arguments> shouldReturnRightValuesForSequencingReason() {
+  static Stream<Arguments> determineTestdataForSequencingReason() {
     return Stream.of(
         Arguments.of("requested", SEQUENCING_REASON_REQUESTED_CODE),
         Arguments.of("REqueSted", SEQUENCING_REASON_REQUESTED_CODE),
@@ -103,31 +104,30 @@ class ValueSetMappingServiceTest {
   @BeforeEach
   public void initMock() {
     lenient()
-        .when(valueSetProvider.getValueSetUrl(UPLOAD_STATUS.valueSetName))
-        .thenReturn(UPLOAD_STATUS.valueSetName);
-    lenient()
-        .when(valueSetProvider.getValueSetUrl(SEQUENCING_REASON.valueSetName))
-        .thenReturn(SEQUENCING_REASON.valueSetName);
-    lenient()
-        .when(futsClient.getConceptMap(UPLOAD_STATUS.valueSetName))
+        .when(futsClient.getConceptMap(UPLOAD_STATUS.url))
         .thenReturn(LIST_UPLOAD_STATUS_CODE_DISPLAY);
     lenient()
-        .when(futsClient.getConceptMap(SEQUENCING_REASON.valueSetName))
+        .when(futsClient.getConceptMap(SEQUENCING_REASON.url))
         .thenReturn(LIST_SEQUENCING_REASON_CODE_DISPLAY);
-    underTest = new ValueSetMappingService(futsClient, valueSetProvider);
+    underTest =
+        new ValueSetMappingService(
+            futsClient,
+            valueSetProvider,
+            FeatureFlags.builder().futsStaticResourceUrls(true).build());
+    underTest.initValueSet();
     underTest.refreshCachedValues();
   }
 
   @SneakyThrows
   @ParameterizedTest
   @MethodSource
-  void shouldReturnRightValuesForUploadStatus(String valueOrCode, String expectedValue) {
+  void determineTestdataForUploadStatus(String valueOrCode, String expectedValue) {
     assertThat(underTest.getCodeFromCodeOrIncompleteDisplay(UPLOAD_STATUS, valueOrCode))
         .isEqualTo(expectedValue);
   }
 
   @ParameterizedTest
-  @MethodSource({"shouldReturnRightValuesForUploadStatus"})
+  @MethodSource({"determineTestdataForUploadStatus"})
   void shouldReturnTrueForUploadStatus(String valueOrCode) {
     assertTrue(underTest.valueSetContains(UPLOAD_STATUS, valueOrCode));
   }
@@ -135,13 +135,13 @@ class ValueSetMappingServiceTest {
   @SneakyThrows
   @ParameterizedTest
   @MethodSource
-  void shouldReturnRightValuesForSequencingReason(String valueOrCode, String expectedValue) {
+  void determineTestdataForSequencingReason(String valueOrCode, String expectedValue) {
     assertThat(underTest.getCodeFromCodeOrIncompleteDisplay(SEQUENCING_REASON, valueOrCode))
         .isEqualTo(expectedValue);
   }
 
   @ParameterizedTest
-  @MethodSource({"shouldReturnRightValuesForSequencingReason"})
+  @MethodSource({"determineTestdataForSequencingReason"})
   void shouldReturnTrueForSequencingReason(String valueOrCode) {
     assertTrue(underTest.valueSetContains(SEQUENCING_REASON, valueOrCode));
   }
@@ -158,8 +158,8 @@ class ValueSetMappingServiceTest {
   }
 
   @ParameterizedTest
-  @EnumSource(ValueSetMappingService.System.class)
-  void shouldReturnFalseForInvalidCodeOrDisplay(ValueSetMappingService.System system) {
-    assertFalse(underTest.valueSetContains(system, "notExisting"));
+  @EnumSource(IgsValueSet.class)
+  void shouldReturnFalseForInvalidCodeOrDisplay(IgsValueSet igsValueSet) {
+    assertFalse(underTest.valueSetContains(igsValueSet, "notExisting"));
   }
 }

@@ -27,7 +27,6 @@ package de.gematik.demis.igs.gateway.documentreference;
  * #L%
  */
 
-import static de.gematik.demis.igs.gateway.documentreference.DocumentReferenceService.IGS_SERVICE_DOCUMENT_REFERENCE_BINARY_ACCESS_WRITE_SUFFIX;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -85,11 +84,7 @@ public class DocumentReferenceServiceTest {
         documentReferenceService.createDocumentReference(MOCK_HASH);
 
     verify(igsServiceClient, times(1)).createDocumentReference(EXPECTED_DOCUMENT_REFERENCE_JSON);
-    Assertions.assertThat(result.sequenceUploadUrl())
-        .isEqualTo(
-            igsServiceUrlPublic
-                + location
-                + IGS_SERVICE_DOCUMENT_REFERENCE_BINARY_ACCESS_WRITE_SUFFIX);
+    Assertions.assertThat(result.documentReference()).isEqualTo(igsServiceUrlPublic + location);
   }
 
   @Test

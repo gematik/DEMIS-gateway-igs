@@ -124,7 +124,7 @@ class NotificationSequenceControllerIT extends FutsMockTestTemplate {
             post("/notification-sequence/$process-notification-sequence")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(notificationData))
-        .andExpect(status().isUnprocessableEntity())
+        .andExpect(status().isUnprocessableContent())
         .andExpect(
             jsonPath("$.title")
                 .value("Fehler beim Übermitteln der Meldung: Validierung fehlgeschlagen"))

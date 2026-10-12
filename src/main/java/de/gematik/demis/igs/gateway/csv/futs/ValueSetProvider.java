@@ -28,6 +28,7 @@ package de.gematik.demis.igs.gateway.csv.futs;
  */
 
 import de.gematik.demis.igs.gateway.communication.FutsClient;
+import de.gematik.demis.igs.gateway.configuration.FeatureFlags;
 import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,16 +39,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * This class requests all ValueSets on strat from the FUTS and provides the URLs for the ValueSets.
+ * This class requests all ValueSets on start from the FUTS and provides the URLs for the ValueSets.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ValueSetProvider {
 
-  private Map<String, String> valueSetUrls = new HashMap<>();
-
   private final FutsClient futsClient;
+  private final FeatureFlags featureFlags;
+  private Map<String, String> valueSetUrls = new HashMap<>();
 
   /**
    * Initializes the ValueSetProvider. Creates a map with the system name as key and the URL as
@@ -55,19 +56,24 @@ public class ValueSetProvider {
    */
   @PostConstruct
   public void init() {
-    valueSetUrls =
-        futsClient.getValueSetUrls().stream()
-            .collect(
-                Collectors.toMap(
-                    url -> Arrays.stream(url.split("/")).toList().getLast(), url -> url));
-    log.info("ValueSetProvider initialized with {} urls", valueSetUrls.size());
+    if (featureFlags.isFutsStaticResourceUrls()) {
+      log.info(
+          "Feature flag FEATURE_FLAG_IGS_DIRECT_VS is enabled, ValueSetProvider will not initialize valueSetUrls");
+    } else {
+      valueSetUrls =
+          futsClient.getValueSetUrls().stream()
+              .collect(
+                  Collectors.toMap(
+                      url -> Arrays.stream(url.split("/")).toList().getLast(), url -> url));
+      log.info("ValueSetProvider initialized with {} urls", valueSetUrls.size());
+    }
   }
 
   /**
    * Returns the URL for the ValueSet with the given system name.
    *
-   * @param systemName
-   * @return
+   * @param systemName the system name of the ValueSet
+   * @return the URL of the ValueSet
    */
   public String getValueSetUrl(String systemName) {
     if (!valueSetUrls.containsKey(systemName)) {

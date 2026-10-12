@@ -30,35 +30,53 @@ package de.gematik.demis.igs.gateway.csv.futs;
 import static java.lang.String.format;
 
 import de.gematik.demis.igs.gateway.communication.FutsClient;
+import de.gematik.demis.igs.gateway.configuration.FeatureFlags;
 import de.gematik.demis.igs.gateway.csv.DataPreprocessingException;
-import java.util.Arrays;
-import java.util.HashMap;
+import jakarta.annotation.PostConstruct;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-/** This class provides the mapping of the ValueSets from the FUTS to the corresponding display */
+/**
+ * Provides lookup and mapping of codes and display values for configured FHIR ValueSets.
+ *
+ * <p>The ValueSet contents are loaded from FUTS, cached locally, and refreshed periodically.
+ */
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class ValueSetMappingService {
 
-  private final Map<System, ReloadableCache> systemCacheMap;
+  private final Map<IgsValueSet, ReloadableCache> systemCacheMap = new EnumMap<>(IgsValueSet.class);
+  private final FutsClient futsClient;
+  private final ValueSetProvider valueSetProvider;
+  private final FeatureFlags featureFlags;
 
-  ValueSetMappingService(final FutsClient futsClient, final ValueSetProvider valueSetProvider) {
-    systemCacheMap = new HashMap<>();
-    Arrays.stream(System.values())
-        .forEach(
-            system ->
-                systemCacheMap.put(
-                    system,
-                    new ReloadableCache(
-                        system.valueSetName,
-                        () ->
-                            futsClient.getConceptMap(
-                                valueSetProvider.getValueSetUrl(system.valueSetName)))));
+  @PostConstruct
+  void initValueSet() {
+    EnumSet.allOf(IgsValueSet.class).forEach(this::initValueSet);
     refreshCachedValues();
+  }
+
+  private void initValueSet(IgsValueSet valueSet) {
+    final Supplier<List<CodeDisplay>> cacheValuesSupplier;
+    if (featureFlags.isFutsStaticResourceUrls()) {
+      log.info("Using static ValueSet URL for {} from FUTS: {}", valueSet, valueSet.url);
+      cacheValuesSupplier = () -> futsClient.getConceptMap(valueSet.url);
+    } else {
+      log.info(
+          "Using dynamic ValueSet URL resolving from FUTS via ValueSetProvider for {}", valueSet);
+      cacheValuesSupplier =
+          () -> futsClient.getConceptMap(valueSetProvider.getValueSetUrl(valueSet.valueSetName));
+    }
+    systemCacheMap.put(valueSet, new ReloadableCache(valueSet.valueSetName, cacheValuesSupplier));
   }
 
   /**
@@ -68,12 +86,12 @@ public class ValueSetMappingService {
    * specified system. It first checks if the exact code is present, and if not, it searches for a
    * display string that starts with the given prefix, ignoring case.
    *
-   * @param system the system whose value set is to be checked
+   * @param igsValueSet the system whose value set is to be checked
    * @param codeOrDisplayString the code or display string to be checked
    * @return true if the code or display string is present in the value set, false otherwise
    */
-  public boolean valueSetContains(final System system, final String codeOrDisplayString) {
-    ReloadableCache cache = systemCacheMap.get(system);
+  public boolean valueSetContains(final IgsValueSet igsValueSet, final String codeOrDisplayString) {
+    ReloadableCache cache = systemCacheMap.get(igsValueSet);
     return cache.getByCode(codeOrDisplayString).isPresent()
         || searchByPrefixIgnoreCase(cache, codeOrDisplayString).isPresent();
   }
@@ -87,17 +105,17 @@ public class ValueSetMappingService {
    * the exact code is not found, it searches for a display string that starts with the given
    * prefix, ignoring case.
    *
-   * @param system the system whose value set is to be checked
+   * @param igsValueSet the system whose value set is to be checked
    * @param codeOrIncompleteDisplay the code or incomplete display string to be checked
    * @return the code if found, otherwise throws a DataPreprocessingException
    * @throws DataPreprocessingException if the code or display string is not found in the value set
    */
   public String getCodeFromCodeOrIncompleteDisplay(
-      final System system, final String codeOrIncompleteDisplay) {
+      final IgsValueSet igsValueSet, final String codeOrIncompleteDisplay) {
     if (codeOrIncompleteDisplay.isBlank()) {
       return "";
     }
-    ReloadableCache cache = systemCacheMap.get(system);
+    ReloadableCache cache = systemCacheMap.get(igsValueSet);
     return cache
         .getByCode(codeOrIncompleteDisplay)
         .or(() -> searchByPrefixIgnoreCase(cache, codeOrIncompleteDisplay))
@@ -106,7 +124,7 @@ public class ValueSetMappingService {
                 new DataPreprocessingException(
                     format(
                         "Could not find valid code system for %s '%s'",
-                        system, codeOrIncompleteDisplay),
+                        igsValueSet, codeOrIncompleteDisplay),
                     null))
         .code();
   }
@@ -121,16 +139,5 @@ public class ValueSetMappingService {
   @Scheduled(cron = "${igs-gateway.cache.futs.cron}")
   public void refreshCachedValues() {
     systemCacheMap.values().forEach(ReloadableCache::loadCache);
-  }
-
-  public enum System {
-    UPLOAD_STATUS("uploadStatus"),
-    SEQUENCING_REASON("sequencingReason");
-
-    public final String valueSetName;
-
-    System(final String name) {
-      this.valueSetName = name;
-    }
   }
 }

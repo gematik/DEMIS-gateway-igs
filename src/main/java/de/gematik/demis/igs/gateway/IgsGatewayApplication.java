@@ -45,15 +45,18 @@ package de.gematik.demis.igs.gateway;
  * #L%
  */
 
+import de.gematik.demis.igs.gateway.configuration.FeatureFlags;
 import de.gematik.demis.service.base.apidoc.EnableDefaultApiSpecConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /** Main class for IGS gateway */
 @SpringBootApplication
 @EnableFeignClients
 @EnableDefaultApiSpecConfig
+@EnableConfigurationProperties(FeatureFlags.class)
 public class IgsGatewayApplication {
 
   public static void main(String[] args) {
